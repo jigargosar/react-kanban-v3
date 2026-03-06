@@ -30,6 +30,16 @@ Spike Execution Plan
   inside Liveblocks storage?
 - Or does LiveList impose its own ordering that conflicts?
 
+# Step 6 -- Offline Behavior (TODO)
+
+- Dev tools offline mode did NOT stop sync -- WebSocket connections
+  already established may survive browser offline toggle
+- Need to test with actual internet disconnection (unplug/disable adapter)
+- Questions to answer:
+  a. Do mutations queue locally and sync on reconnect?
+  b. Or are they lost?
+  c. How does Liveblocks surface connection state to the UI?
+
 # Checkpoints
 
 +-----+============================+=========================+

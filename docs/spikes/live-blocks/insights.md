@@ -20,59 +20,58 @@ CRDT storage model:
      only applied when room is first created
   e. State can be seeded externally via REST API
 
-# Three Tiers of Sync Behavior
+# CRDT Internals
 
-From Trello analysis and spike experimentation:
+Not a pure CRDT -- centralized server (Cloudflare Durable Objects)
+with CRDT-inspired client-side structures. Server is authoritative.
 
-  a. Structural changes (move card, add label, assign, cross-column
-     drag) -- sync immediately, live. Every production Kanban app
-     does this. CRDTs give us better conflict handling than server-
-     side last-write-wins.
+Mutation flow:
+  a. Local optimistic apply (instant UI)
+  b. Send op to server via WebSocket
+  c. Server applies, persists, acknowledges back to sender
+  d. Server broadcasts to other clients
+  e. While local op is pending, conflicting remote ops are ignored
+     locally (prevents flicker)
 
-  b. Text editing -- while cursor is in the field, don't sync. On
-     blur, commit. Last write wins. This is Trello's model.
+Conflict resolution per type:
+  a. LiveObject/LiveMap -- last-write-wins per property/key
+  b. LiveList -- ID-based operations internally (not positional).
+     Concurrent ops on different items never conflict.
 
-  c. Offline -- Trello warns "changes won't be saved" and allows
-     browsing cached data. No offline write support. Liveblocks
-     also has no native offline mode. Acceptable baseline: warn
-     the user, don't pretend offline works.
+Storage persists indefinitely on Liveblocks servers. No server-side
+operations log (confirmed by team). Client-side undo/redo only,
+resets on page reload.
 
-# Co-Presence as a USP
+# Integration Limitations
 
-Trello silently loses text edits on conflict (last write wins).
-We can do better: when a user opens a card's text editor, show
-if another user is also editing it. This turns silent data loss
-into visible collaboration -- the user knows to wait or coordinate.
+  a. StorageUpdated webhook throttled to once per 60 seconds --
+     not per-operation, just a "something changed" signal
+  b. No PATCH API -- server-side write-back reinitializes storage
+     and disconnects all users
+  c. Client-side room.subscribe(root, cb, { isDeep: true }) gives
+     per-operation visibility, but only on the client
+  d. Liveblocks expects to BE your database during collaboration.
+     Your DB is a secondary, eventually-consistent read-copy.
+  e. No case studies detail how production apps pair Liveblocks
+     with their own database
 
-Liveblocks presence (useOthers with scoped state) supports this
-natively. This is a differentiator no mainstream Kanban app offers.
+# Presence Value
 
-# Optimistic UI -- Lessons from Firebase
-
-The core problem with Firebase-style real-time listeners:
-  a. Can't distinguish local writes from remote updates from
-     initial load
-  b. Have to build manual optimistic update logic on top
-  c. Leads to source-checking hacks and flicker
-
-Liveblocks CRDTs avoid this entirely -- there is no distinction
-between local and remote state. Mutations apply locally first,
-converge automatically. No reconciliation code needed.
+Even if we skip Liveblocks Storage, the presence layer is valuable:
+  a. useOthers / useSelf hooks are clean and ergonomic
+  b. Scoped presence state (e.g., isDragging, editingCardId)
+  c. 1-2 second update latency is good enough
+  d. Enables co-editing awareness (our USP)
 
 # Gotchas
 
   a. Free tier shows "Powered by Liveblocks" watermark
-  b. Without global type declaration (declare global interface
-     Liveblocks), hooks return untyped Lson unions -- must set up
-     liveblocks.config.ts early
-  c. Pricing/limits still need evaluation for production use
+  b. Without global type declaration, hooks return untyped Lson
+     unions -- must set up liveblocks.config.ts early
+  c. Pricing: 100 MAU, 10 connections/room, 256MB storage on free
+  d. Open-sourced sync engine (@liveblocks/server, AGPL v3) with
+     per-room SQLite -- self-hosting may be possible
 
 # Decision
 
-Adopt. Liveblocks delivers on its core promise:
-  - Optimistic UI without manual reconciliation
-  - No "whose update is this?" disambiguation (the Firebase problem)
-  - CRDT convergence is automatic and deterministic
-  - Presence is built in and enables co-editing awareness (USP)
-
-Pair with Supabase for persistence, auth, and serverless functions.
+Use Liveblocks for presence only. Skip Liveblocks Storage.
