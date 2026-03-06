@@ -35,6 +35,6 @@ that plagues Firebase-style listeners).
 # Folder Guide
 
 - This folder (docs/spikes/live-blocks/) -- spike planning, library
-  evaluation, and findings
+  evaluation, and insights
 - src/ subfolder (created during execution) -- throwaway spike code,
   served by Vite from project root
