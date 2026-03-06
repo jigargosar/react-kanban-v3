@@ -1,6 +1,6 @@
 Spike Insights
 
-# Results
+# Observations
 
 Sync and presence work as advertised:
   a. Two-tab sync is instant, no flicker, no manual reconciliation
@@ -55,13 +55,11 @@ resets on page reload.
   e. No case studies detail how production apps pair Liveblocks
      with their own database
 
-# Presence Value
+# Presence
 
-Even if we skip Liveblocks Storage, the presence layer is valuable:
   a. useOthers / useSelf hooks are clean and ergonomic
   b. Scoped presence state (e.g., isDragging, editingCardId)
   c. 1-2 second update latency is good enough
-  d. Enables co-editing awareness (our USP)
 
 # Gotchas
 
@@ -71,7 +69,3 @@ Even if we skip Liveblocks Storage, the presence layer is valuable:
   c. Pricing: 100 MAU, 10 connections/room, 256MB storage on free
   d. Open-sourced sync engine (@liveblocks/server, AGPL v3) with
      per-room SQLite -- self-hosting may be possible
-
-# Decision
-
-Use Liveblocks for presence only. Skip Liveblocks Storage.

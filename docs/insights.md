@@ -4,66 +4,76 @@ Project Insights
 
 Source: [Liveblocks spike](spikes/live-blocks/insights.md)
 
-Three tiers of sync behavior for a multi-user Kanban board:
+Trello's sync model (observed):
+  a. All structural changes (move, label, assign) sync live
+  b. Text editing does not sync while cursor is active -- commits
+     on blur, last write wins
+  c. Offline: warns user, does not save. Allows browsing cached
+     data. Did not appear heavily polished.
 
-  a. Structural changes (move, label, assign) -- sync live,
-     immediately. Standard across all production Kanban apps.
-  b. Text editing -- don't sync while cursor is active. Commit on
-     blur. Last write wins.
-  c. Offline -- warn user, don't save. Allow browsing cached data.
-
-# Optimistic Updates Without Source-Checking
+# The Firebase Problem
 
 Source: [Liveblocks spike](spikes/live-blocks/insights.md)
 
-Firebase-style listeners force "whose update is this?" logic.
-Supabase Realtime avoids this with a simpler model: all clients
-subscribe, every write broadcasts to all (including the writer),
-every client overwrites local state with the broadcast. No source
-checking. Optimistic UI: show change instantly, broadcast confirms
-or corrects.
+Firebase-style real-time listeners force distinguishing between
+local writes, remote updates, and initial load -- leading to manual
+reconciliation and source-checking hacks.
 
-# Co-Presence as a Differentiator
+Potential solution: Supabase Realtime uses a broadcast model where
+all clients (including the writer) receive the same update. Every
+client overwrites local state with the broadcast -- no source
+checking needed.
+
+Problem: optimistic UI still requires showing the change instantly
+before the broadcast confirms or corrects it. How cleanly Supabase
+supports this pattern is untested.
+
+# Co-Presence
 
 Source: [Liveblocks spike](spikes/live-blocks/insights.md)
 
 No mainstream Kanban app shows when another user is editing the same
 card's text. They silently lose edits via last-write-wins. Showing
 co-presence turns silent data loss into visible collaboration.
-Liveblocks presence supports this natively.
 
-# CRDTs Are Overkill for Kanban
+Liveblocks presence supports this natively. Supabase also has a
+Realtime Presence feature -- not yet evaluated.
 
-Source: [Liveblocks spike](spikes/live-blocks/insights.md)
-
-CRDTs solve concurrent editing conflicts with mathematical
-convergence. But for a Kanban board, real conflicts (two users
-moving the same card simultaneously) are rare, and last-write-wins
-is acceptable. CRDTs add complexity (tombstones, opaque binary
-storage, no queryable data) without proportional benefit.
-
-Co-presence reduces conflicts further by making concurrent edits
-visible before they happen.
-
-# Soft Delete Eliminates Multi-User Conflicts
+# Conflict Frequency in Kanban
 
 Source: [Liveblocks spike](spikes/live-blocks/insights.md)
 
-Never hard-delete, only archive. This eliminates FK violations
-(move card to deleted column) and stale reference errors (edit
-deleted card). The row always exists. Filter archived rows via
-Postgres view or RLS policy -- single source of truth for the
-filter, not scattered across client queries.
+Real conflicts (two users acting on the same entity at the same
+time) can happen regardless of team size. With co-presence making
+concurrent edits visible, frequency may reduce but is not zero.
 
-# Architecture Direction
+CRDTs provide automatic convergence for conflicts. Last-write-wins
+is simpler but silently discards one user's intent. Tradeoff is
+not yet decided.
+
+# Soft Delete as Conflict Avoidance
+
+Source: discussion during spike
+
+Trello never hard-deletes, only archives. This eliminates:
+  a. FK violations (move card to deleted column)
+  b. Stale reference errors (edit deleted card)
+
+The row always exists. Archived rows need filtering -- Postgres
+view or RLS policy keeps the filter in one place rather than
+scattered across client queries.
+
+# Data Ownership
 
 Source: [Liveblocks spike](spikes/live-blocks/insights.md)
 
-  a. Supabase -- source of truth, persistence, auth, real-time
-     broadcast, serverless functions
-  b. Liveblocks -- presence layer only (who is online, co-editing
-     awareness). Skip Liveblocks Storage.
-  c. Optimistic updates -- client-side, confirmed or corrected by
-     Supabase Realtime broadcast
-  d. Conflicts -- last-write-wins, acceptable for Kanban
-  e. Deletion -- archive only, never hard delete
+Liveblocks stores data on their servers (Cloudflare Durable
+Objects). Data persists indefinitely but we do not own or control
+it. No queryable access (cannot "SELECT cards WHERE assignee =
+Alice" across rooms). Webhook sync to own DB is throttled at 60s.
+
+Potential solution: use Liveblocks only for presence, own all data
+in our DB (Supabase).
+
+Problem: we lose Liveblocks' optimistic UI and CRDT conflict
+resolution -- need to build optimistic updates ourselves.
