@@ -79,3 +79,17 @@ in our DB (Supabase).
 
 Problem: we lose Liveblocks' optimistic UI and CRDT conflict
 resolution -- need to build optimistic updates ourselves.
+
+# Backend Candidates
+
+Three options evaluated so far:
+
+  a. Liveblocks -- spiked. Good real-time sync and presence.
+     Storage ownership is a limitation (see Data Ownership above).
+  b. Convex -- not spiked. Full backend with real-time reactive
+     queries, optimistic updates, database, presence, offline
+     mode. Conflict model uses serializable transactions (retry,
+     not merge). Newer platform. Worth keeping as an option.
+  c. Supabase -- not spiked. Battle-tested Postgres, Realtime
+     broadcast, Realtime Presence, auth, serverless functions.
+     Familiar territory. Optimistic UI pattern untested.
