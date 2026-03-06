@@ -42,3 +42,12 @@ for full old row).
   c. Custom schemas (e.g., spike) require exposing in dashboard
      API settings + explicit grants. Using public schema avoids this.
   d. supabase init creates .gitignore and config.toml.
+
+# Broadcast Overwrite vs Active Editing
+
+Broadcast overwrite works for structural changes (move, add, delete).
+For text editing: if a user saves and immediately resumes editing, the
+broadcast of the first save arrives and overwrites the in-progress edit.
+Solution: suppress broadcast overwrites for fields under active edit,
+commit on blur, last write wins. This is an app-level concern, not a
+limitation of the broadcast model itself.
