@@ -29,13 +29,15 @@ export function App() {
                 'postgres_changes',
                 { event: '*', schema: 'public', table: 'spike_items' },
                 (payload) => {
-                    if (payload.eventType === 'INSERT') {
-                        setItems((prev) => [...prev, payload.new as Item].sort((a, b) => a.position < b.position ? -1 : 1))
-                    } else if (payload.eventType === 'UPDATE') {
-                        setItems((prev) =>
-                            prev.map((item) => item.id === (payload.new as Item).id ? payload.new as Item : item)
-                                .sort((a, b) => a.position < b.position ? -1 : 1)
-                        )
+                    if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
+                        setItems((prev) => {
+                            const newItem = payload.new as Item
+                            const exists = prev.some((item) => item.id === newItem.id)
+                            const next = exists
+                                ? prev.map((item) => item.id === newItem.id ? newItem : item)
+                                : [...prev, newItem]
+                            return next.sort((a, b) => a.position < b.position ? -1 : 1)
+                        })
                     } else if (payload.eventType === 'DELETE') {
                         setItems((prev) => prev.filter((item) => item.id !== payload.old.id))
                     }

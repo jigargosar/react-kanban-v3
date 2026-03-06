@@ -48,8 +48,10 @@ export function ReorderList({ items, setItems }: ReorderListProps) {
         const lastPosition = items[items.length - 1]?.position ?? null
         const newPosition = generateKeyBetween(lastPosition, null)
         const text = `Task ${items.length + 1}`
+        const id = crypto.randomUUID()
 
-        supabase.from('spike_items').insert({ text, position: newPosition }).then()
+        setItems((prev) => [...prev, { id, text, position: newPosition }])
+        supabase.from('spike_items').insert({ id, text, position: newPosition }).then()
     }
 
     return (
