@@ -13,33 +13,40 @@ Trello's sync model (observed):
   d. Full offline support is not necessary. Partial read-only
      (browse cached data) is possible but also not required.
 
-# The Firebase Problem
+# The Broadcast Overwrite Model
 
-Source: [Liveblocks spike](spikes/live-blocks/insights.md)
+Source: [Supabase spike](spikes/supabase-realtime/insights.md)
 
-Firebase-style real-time listeners force distinguishing between
-local writes, remote updates, and initial load -- leading to manual
-reconciliation and source-checking hacks.
+Supabase Realtime broadcasts to all clients including the writer.
+Every client applies the broadcast as an upsert — no need to
+distinguish "my update vs remote update." This avoids the Firebase
+problem of source-checking and reconciliation.
 
-Potential solution: Supabase Realtime uses a broadcast model where
-all clients (including the writer) receive the same update. Every
-client overwrites local state with the broadcast -- no source
-checking needed.
+# Optimistic Updates
 
-Problem: optimistic UI still requires showing the change instantly
-before the broadcast confirms or corrects it. How cleanly Supabase
-supports this pattern is untested.
+Source: [Supabase spike](spikes/supabase-realtime/insights.md)
+
+Optimistic insert with server-generated IDs causes race conditions
+(broadcast and .then callback race to provide the real ID, causing
+duplicates). Solution: generate UUID client-side via
+crypto.randomUUID() and pass it in the insert. Broadcast arrives
+with same ID, handled as upsert — no duplicates, server wins.
+
+For updates/deletes: apply optimistically, broadcast confirms.
+For inserts: client-generated ID enables optimistic add.
 
 # Co-Presence
 
-Source: [Liveblocks spike](spikes/live-blocks/insights.md)
+Source: [Liveblocks spike](spikes/live-blocks/insights.md),
+        [Supabase spike](spikes/supabase-realtime/insights.md)
 
 No mainstream Kanban app shows when another user is editing the same
 card's text. They silently lose edits via last-write-wins. Showing
 co-presence turns silent data loss into visible collaboration.
 
-Liveblocks presence supports this natively. Supabase also has a
-Realtime Presence feature -- not yet evaluated.
+Both Liveblocks and Supabase support presence. Liveblocks has
+cleaner React hooks (useOthers/useSelf). Supabase is more manual
+(channel.track + presenceState) but functional.
 
 # Conflict Frequency in Kanban
 
@@ -74,15 +81,9 @@ Objects). Data persists indefinitely but we do not own or control
 it. No queryable access (cannot "SELECT cards WHERE assignee =
 Alice" across rooms). Webhook sync to own DB is throttled at 60s.
 
-Potential solution: use Liveblocks only for presence, own all data
-in our DB (Supabase).
-
-Problem: we lose Liveblocks' optimistic UI and CRDT conflict
-resolution -- need to build optimistic updates ourselves.
+Supabase: we own the data in Postgres, full queryable access.
 
 # Backend Candidates
-
-Three options evaluated so far:
 
   a. Liveblocks -- spiked. Good real-time sync and presence.
      Storage ownership is a limitation (see Data Ownership above).
@@ -90,6 +91,7 @@ Three options evaluated so far:
      queries, optimistic updates, database, presence, offline
      mode. Conflict model uses serializable transactions (retry,
      not merge). Newer platform. Worth keeping as an option.
-  c. Supabase -- not spiked. Battle-tested Postgres, Realtime
-     broadcast, Realtime Presence, auth, serverless functions.
-     Familiar territory. Optimistic UI pattern untested.
+  c. Supabase -- spiked. Broadcast overwrite model works. Presence
+     works. Optimistic inserts solved via client-generated UUIDs.
+     We own the data. More boilerplate than Liveblocks for React
+     integration (no official hooks).

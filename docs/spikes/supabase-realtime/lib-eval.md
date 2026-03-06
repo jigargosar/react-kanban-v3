@@ -1,44 +1,43 @@
 Supabase Realtime Library Evaluation
 
-Filled in during spike execution from docs research and testing.
+# Realtime Modes
 
-# Supabase Realtime Modes
+  a. Postgres Changes -- listen to INSERT/UPDATE/DELETE on tables.
+     DB-triggered, includes full row payload. Used for data sync.
+  b. Broadcast -- pub/sub between clients, no DB involved. Fast
+     but no persistence.
+  c. Presence -- track who is online and their state. Used for
+     co-presence (who is editing what).
 
-Supabase Realtime has three modes:
-  a. Postgres Changes -- listen to INSERT/UPDATE/DELETE on tables
-  b. Broadcast -- pub/sub between clients (no DB involved)
-  c. Presence -- track who is online and their state
-
-Need to determine which mode (or combination) fits the overwrite
-model. Postgres Changes gives us DB-triggered broadcasts.
-Broadcast mode is client-to-client without persistence.
+For data sync: Postgres Changes. For co-presence: Presence.
 
 # React Integration
 
-  - @supabase/supabase-js is the client library
-  - No official React hooks library (unlike Liveblocks)
-  - Need to evaluate: wrap in useEffect, or use a community lib?
-  - How does subscription cleanup work?
+  - @supabase/supabase-js is the sole client library
+  - No official React hooks (unlike Liveblocks useStorage/useOthers)
+  - Subscriptions managed via useEffect + cleanup via unsubscribe()
+  - Works but more boilerplate than Liveblocks
 
 # Postgres Changes Payload
 
-  - Does the broadcast include the full row or just changed fields?
-  - Does it include the old row for updates?
-  - RLS: does Realtime respect row-level security?
+  - INSERT: full new row
+  - UPDATE: full new row (old row empty unless REPLICA IDENTITY FULL)
+  - DELETE: only old.id by default
 
 # Presence API
 
-  - track() / untrack() for joining/leaving
-  - presenceState() for current state
-  - How does it compare to Liveblocks useOthers/useSelf?
-  - Latency?
+  - channel.track({ userId, ... }) to join
+  - channel.on('presence', { event: 'sync' }, cb) for updates
+  - channel.presenceState() returns all tracked users
+  - Functional, ~1-2s latency, more manual than Liveblocks
 
 # Pricing and Limits
 
-  - Free tier: (TBD)
-  - Realtime message limits? Connection limits?
-  - Sufficient for dev + demo?
+  - Free tier: 500 MB database, 200 concurrent Realtime connections,
+    2 million Realtime messages/month
+  - Sufficient for dev + demo
 
 # Bundle Size
 
-  - @supabase/supabase-js: (TBD)
+  - @supabase/supabase-js 2.98.0 — includes all Supabase features
+    (auth, storage, realtime, functions) in one package
