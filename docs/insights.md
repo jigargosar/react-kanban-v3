@@ -10,6 +10,8 @@ Trello's sync model (observed):
      on blur, last write wins
   c. Offline: warns user, does not save. Allows browsing cached
      data. Did not appear heavily polished.
+  d. Full offline support is not necessary. Partial read-only
+     (browse cached data) is possible but also not required.
 
 # The Firebase Problem
 
