@@ -3,20 +3,22 @@ Task Board
 # Urgent
 
 # InBasket
+
 1. UI: overhaul
+
 # Ready
 
-1. Mutation queue for Supabase writes (decisions.md#mutation-queue)
-2. Column drag: no visual gap indicator showing drop position
-3. Label renaming (edit pencil on label bars)
-4. Seed clean demo board with realistic content
-5. Deploy to Netlify + README with screenshot and live link
+1. Seed clean demo board with realistic content
+2. Deploy to Netlify + README with screenshot and live link
 
 # InProgress
 
 # Done
 
 1. Labels: Trello-style colored bars, default labels seeded per board
+2. Mutation queue for Supabase writes
+3. Column drag: dashed accent placeholder showing drop position
+4. Label renaming (edit pencil on label bars)
 
 # Backlog
 

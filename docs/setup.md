@@ -38,6 +38,7 @@ Migrations (in supabase/migrations/):
   20260307100000_boards_table.sql       -- boards + board_id on columns
   20260307110000_labels_and_due_dates.sql -- labels, card_labels, due_date
   20260307120000_comments_and_cover.sql -- comments table, cover_color on cards
+  20260307130000_seed_default_labels.sql -- 6 default colored labels per board
 
 # Supabase CLI
 

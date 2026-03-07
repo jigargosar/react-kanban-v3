@@ -9,6 +9,6 @@ Problem: fire-and-forget writes execute in unpredictable order.
 No guarantee that write A completes before write B starts.
 
 Implementation: mutationQueue.ts exports enqueue(fn). ~15 lines.
-BoardView wraps every DB write in enqueue().
+BoardView wraps every DB write in enqueue(). Implemented.
 
 Open: how to make bypassing the queue impossible, not just convention.
