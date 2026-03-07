@@ -10,8 +10,8 @@ Task Board
 
 # InProgress
 
-1. Labels: existing labels don't work, UI/UX is terrible
-
 # Done
+
+1. Labels: Trello-style colored bars, default labels seeded per board
 
 # Backlog

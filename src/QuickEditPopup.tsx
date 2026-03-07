@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import type { Card, Column, Label } from './types'
-import { LABEL_COLORS, labelDotClass, labelBgClass } from './types'
+import { labelDotClass } from './types'
 
 type QuickEditPopupProps = {
     card: Card
@@ -11,7 +11,6 @@ type QuickEditPopupProps = {
     onUpdateTitle: (title: string) => void
     onMoveToColumn: (columnId: string) => void
     onToggleLabel: (labelId: string) => void
-    onCreateLabel: (title: string, color: string) => void
     onArchive: () => void
     onOpenDetail: () => void
     onClose: () => void
@@ -26,15 +25,12 @@ export function QuickEditPopup({
     onUpdateTitle,
     onMoveToColumn,
     onToggleLabel,
-    onCreateLabel,
     onArchive,
     onOpenDetail,
     onClose,
 }: QuickEditPopupProps) {
     const [title, setTitle] = useState(card.title)
     const [showLabels, setShowLabels] = useState(false)
-    const [newLabelTitle, setNewLabelTitle] = useState('')
-    const [newLabelColor, setNewLabelColor] = useState('green')
     const overlayRef = useRef<HTMLDivElement>(null)
 
     useEffect(() => {
@@ -57,13 +53,6 @@ export function QuickEditPopup({
     const handleSave = () => {
         commitTitle()
         onClose()
-    }
-
-    const createLabel = () => {
-        const trimmed = newLabelTitle.trim()
-        if (!trimmed) return
-        onCreateLabel(trimmed, newLabelColor)
-        setNewLabelTitle('')
     }
 
     // Positioning logic
@@ -181,49 +170,18 @@ export function QuickEditPopup({
                             <button
                                 key={label.id}
                                 onClick={() => onToggleLabel(label.id)}
-                                className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-[11px] transition-all cursor-pointer ${
-                                    cardLabelIds.has(label.id)
-                                        ? `${labelBgClass(label.color)} text-white/80`
-                                        : 'text-white/40 hover:bg-white/[0.05]'
+                                className={`w-full flex items-center gap-2 h-7 px-2 rounded text-[11px] font-medium text-white/90 transition-all cursor-pointer hover:brightness-110 ${labelDotClass(label.color)} ${
+                                    cardLabelIds.has(label.id) ? 'ring-2 ring-white/40' : 'opacity-60 hover:opacity-100'
                                 }`}
                             >
-                                <span className={`h-2.5 w-2.5 rounded-full shrink-0 ${labelDotClass(label.color)}`} />
-                                <span className="flex-1 text-left truncate">{label.title}</span>
                                 {cardLabelIds.has(label.id) && (
-                                    <svg className="h-3 w-3 text-accent shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                                    <svg className="h-3 w-3 text-white shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
                                         <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                                     </svg>
                                 )}
+                                <span className="truncate">{label.title}</span>
                             </button>
                         ))}
-                        <div className="pt-2 border-t border-white/[0.06] space-y-1.5">
-                            <div className="flex gap-1">
-                                <input
-                                    value={newLabelTitle}
-                                    onChange={(e) => setNewLabelTitle(e.target.value)}
-                                    onKeyDown={(e) => { if (e.key === 'Enter') createLabel() }}
-                                    placeholder="New label..."
-                                    className="flex-1 bg-white/[0.04] border border-white/[0.08] rounded-md px-2 py-1 text-[10px] text-white outline-none placeholder:text-white/20 focus:border-accent/30 transition-colors"
-                                />
-                                <button
-                                    onClick={createLabel}
-                                    className="px-2 py-1 bg-accent/20 text-accent text-[10px] rounded-md hover:bg-accent/30 transition-colors cursor-pointer font-medium"
-                                >
-                                    +
-                                </button>
-                            </div>
-                            <div className="flex gap-1 px-0.5">
-                                {LABEL_COLORS.map((c) => (
-                                    <button
-                                        key={c.key}
-                                        onClick={() => setNewLabelColor(c.key)}
-                                        className={`h-4 w-4 rounded-full ${c.dot} transition-all cursor-pointer ${
-                                            newLabelColor === c.key ? 'ring-2 ring-white/40 scale-110' : 'opacity-40 hover:opacity-80'
-                                        }`}
-                                    />
-                                ))}
-                            </div>
-                        </div>
                     </div>
                 )}
             </div>

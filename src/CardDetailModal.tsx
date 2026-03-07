@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import type { Card, Column, Comment, Label } from './types'
-import { LABEL_COLORS, labelDotClass, labelBgClass } from './types'
+import { labelDotClass } from './types'
 
 type CardDetailModalProps = {
     card: Card
@@ -14,7 +14,6 @@ type CardDetailModalProps = {
     onUpdateCover: (color: string | null) => void
     onMoveToColumn: (columnId: string) => void
     onToggleLabel: (labelId: string) => void
-    onCreateLabel: (title: string, color: string) => void
     onAddComment: (content: string) => void
     onArchive: () => void
     onClose: () => void
@@ -32,7 +31,6 @@ export function CardDetailModal({
     onUpdateCover,
     onMoveToColumn,
     onToggleLabel,
-    onCreateLabel,
     onAddComment,
     onArchive,
     onClose,
@@ -43,8 +41,6 @@ export function CardDetailModal({
     const [description, setDescription] = useState(card.description)
     const [showLabelPicker, setShowLabelPicker] = useState(false)
     const [showCoverPicker, setShowCoverPicker] = useState(false)
-    const [newLabelTitle, setNewLabelTitle] = useState('')
-    const [newLabelColor, setNewLabelColor] = useState('green')
     const [commentText, setCommentText] = useState('')
     const overlayRef = useRef<HTMLDivElement>(null)
 
@@ -78,13 +74,6 @@ export function CardDetailModal({
         }
     }
 
-    const createLabel = () => {
-        const trimmed = newLabelTitle.trim()
-        if (!trimmed) return
-        onCreateLabel(trimmed, newLabelColor)
-        setNewLabelTitle('')
-    }
-
     const submitComment = () => {
         const trimmed = commentText.trim()
         if (!trimmed) return
@@ -106,7 +95,7 @@ export function CardDetailModal({
             <div className="w-full max-w-2xl rounded-xl bg-surface border border-white/[0.08] shadow-2xl mb-12">
                 {/* Cover color band */}
                 {card.cover_color && (
-                    <div className={`h-10 rounded-t-xl ${LABEL_COLORS.find((c) => c.key === card.cover_color)?.dot ?? 'bg-gray-400'}`} />
+                    <div className={`h-10 rounded-t-xl ${labelDotClass(card.cover_color)}`} />
                 )}
 
                 {/* Header */}
@@ -165,10 +154,9 @@ export function CardDetailModal({
                                     {activeLabels.map((label) => (
                                         <span
                                             key={label.id}
-                                            className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium ${labelBgClass(label.color)} text-white/70`}
+                                            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-[11px] font-medium ${labelDotClass(label.color)} text-white/90`}
                                         >
-                                            <span className={`h-2 w-2 rounded-full ${labelDotClass(label.color)}`} />
-                                            {label.title}
+                                            {label.title || '\u00A0'}
                                         </span>
                                     ))}
                                 </div>
@@ -273,49 +261,18 @@ export function CardDetailModal({
                                         <button
                                             key={label.id}
                                             onClick={() => onToggleLabel(label.id)}
-                                            className={`w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-[12px] transition-all cursor-pointer ${
-                                                cardLabelIds.has(label.id)
-                                                    ? `${labelBgClass(label.color)} text-white/80`
-                                                    : 'text-white/40 hover:bg-white/[0.04]'
+                                            className={`w-full flex items-center gap-2 h-8 px-2.5 rounded text-[11px] font-medium text-white/90 transition-all cursor-pointer hover:brightness-110 ${labelDotClass(label.color)} ${
+                                                cardLabelIds.has(label.id) ? 'ring-2 ring-white/40' : 'opacity-60 hover:opacity-100'
                                             }`}
                                         >
-                                            <span className={`h-2.5 w-2.5 rounded-full ${labelDotClass(label.color)}`} />
-                                            <span className="flex-1 text-left truncate">{label.title}</span>
                                             {cardLabelIds.has(label.id) && (
-                                                <svg className="h-3 w-3 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                                                <svg className="h-3 w-3 text-white shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
                                                     <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                                                 </svg>
                                             )}
+                                            <span className="truncate">{label.title}</span>
                                         </button>
                                     ))}
-                                    <div className="pt-2 border-t border-white/[0.06] space-y-1.5">
-                                        <div className="flex gap-1">
-                                            <input
-                                                value={newLabelTitle}
-                                                onChange={(e) => setNewLabelTitle(e.target.value)}
-                                                onKeyDown={(e) => { if (e.key === 'Enter') createLabel() }}
-                                                placeholder="New label..."
-                                                className="flex-1 bg-white/[0.03] border border-white/[0.08] rounded px-2 py-1 text-[11px] text-white outline-none placeholder:text-white/20"
-                                            />
-                                            <button
-                                                onClick={createLabel}
-                                                className="px-2 py-1 bg-accent/20 text-accent text-[11px] rounded hover:bg-accent/30 transition-colors cursor-pointer"
-                                            >
-                                                +
-                                            </button>
-                                        </div>
-                                        <div className="flex gap-1">
-                                            {LABEL_COLORS.map((c) => (
-                                                <button
-                                                    key={c.key}
-                                                    onClick={() => setNewLabelColor(c.key)}
-                                                    className={`h-4 w-4 rounded-full ${c.dot} transition-all cursor-pointer ${
-                                                        newLabelColor === c.key ? 'ring-2 ring-white/40 scale-110' : 'opacity-50 hover:opacity-80'
-                                                    }`}
-                                                />
-                                            ))}
-                                        </div>
-                                    </div>
                                 </div>
                             )}
                         </div>
@@ -359,12 +316,12 @@ export function CardDetailModal({
                             {showCoverPicker && (
                                 <div className="mt-2 space-y-1.5">
                                     <div className="flex flex-wrap gap-1.5">
-                                        {LABEL_COLORS.map((c) => (
+                                        {labels.map((label) => (
                                             <button
-                                                key={c.key}
-                                                onClick={() => onUpdateCover(c.key)}
-                                                className={`h-6 w-10 rounded ${c.dot} transition-all cursor-pointer ${
-                                                    card.cover_color === c.key ? 'ring-2 ring-white/50 scale-105' : 'opacity-60 hover:opacity-90'
+                                                key={label.id}
+                                                onClick={() => onUpdateCover(label.color)}
+                                                className={`h-6 w-10 rounded ${labelDotClass(label.color)} transition-all cursor-pointer ${
+                                                    card.cover_color === label.color ? 'ring-2 ring-white/50 scale-105' : 'opacity-60 hover:opacity-90'
                                                 }`}
                                             />
                                         ))}

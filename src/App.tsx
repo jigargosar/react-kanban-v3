@@ -4,6 +4,7 @@ import { generateKeyBetween } from 'fractional-indexing'
 import { Sidebar } from './Sidebar'
 import { BoardView } from './BoardView'
 import type { Board } from './types'
+import { LABEL_COLORS } from './types'
 
 export function App() {
     const [boards, setBoards] = useState<Board[]>([])
@@ -60,7 +61,19 @@ export function App() {
         const title = `Board ${boards.length + 1}`
         setBoards((prev) => [...prev, { id, title, position, archived: false }])
         setSelectedBoardId(id)
-        supabase.from('boards').insert({ id, title, position }).then(({ error }) => { if (error) console.error(error) })
+        supabase.from('boards').insert({ id, title, position })
+            .then(({ error }) => {
+                if (error) { console.error(error); return }
+                const defaultLabels = LABEL_COLORS.map((c, i) => ({
+                    id: crypto.randomUUID(),
+                    board_id: id,
+                    title: '',
+                    color: c.key,
+                    position: `a${i}`,
+                }))
+                supabase.from('labels').insert(defaultLabels)
+                    .then(({ error }) => { if (error) console.error(error) })
+            })
     }
 
     const archiveBoard = (boardId: string) => {
