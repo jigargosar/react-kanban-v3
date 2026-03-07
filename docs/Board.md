@@ -10,6 +10,8 @@ Task Board
 
 # InProgress
 
+1. Labels: existing labels don't work, UI/UX is terrible
+
 # Done
 
 # Backlog
