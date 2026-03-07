@@ -27,6 +27,7 @@ export type Card = {
     position: Position
     archived: boolean
     due_date: string | null
+    cover_color: string | null
 }
 
 export type Label = {
@@ -40,6 +41,14 @@ export type Label = {
 export type CardLabel = {
     card_id: CardId
     label_id: LabelId
+}
+
+export type Comment = {
+    id: string
+    card_id: CardId
+    author_name: string
+    content: string
+    created_at: string
 }
 
 export const LABEL_COLORS: { key: string; bg: string; dot: string; name: string }[] = [

@@ -1,6 +1,6 @@
 import { SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { SortableCard } from './Card'
 import type { Card, Column, Label } from './types'
 
@@ -42,7 +42,20 @@ export function KanbanColumn({
     const [title, setTitle] = useState(column.title)
     const [adding, setAdding] = useState(false)
     const [newCardTitle, setNewCardTitle] = useState('')
+    const [showMenu, setShowMenu] = useState(false)
     const addInputRef = useRef<HTMLInputElement>(null)
+    const menuRef = useRef<HTMLDivElement>(null)
+
+    useEffect(() => {
+        if (!showMenu) return
+        const handleClickOutside = (e: MouseEvent) => {
+            if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+                setShowMenu(false)
+            }
+        }
+        document.addEventListener('mousedown', handleClickOutside)
+        return () => document.removeEventListener('mousedown', handleClickOutside)
+    }, [showMenu])
 
     const commitTitle = () => {
         setEditing(false)
@@ -92,24 +105,58 @@ export function KanbanColumn({
                         autoFocus
                     />
                 ) : (
-                    <div className="flex items-center gap-2" onDoubleClick={() => setEditing(true)}>
-                        <h2 className="text-[13px] font-semibold text-white/70 cursor-pointer uppercase tracking-wider">
+                    <div className="flex items-center gap-2 flex-1 min-w-0" onDoubleClick={() => setEditing(true)}>
+                        <h2 className="text-[13px] font-semibold text-white/70 cursor-pointer uppercase tracking-wider truncate">
                             {column.title}
                         </h2>
-                        <span className="text-[11px] font-medium text-white/20 bg-white/[0.05] rounded-full px-1.5 py-0.5 min-w-[20px] text-center">
+                        <span className="text-[11px] font-medium text-white/20 bg-white/[0.05] rounded-full px-1.5 py-0.5 min-w-[20px] text-center shrink-0">
                             {cards.length}
                         </span>
                     </div>
                 )}
-                <button
-                    onClick={onArchiveColumn}
-                    className="text-white/10 hover:text-red-400 transition-colors cursor-pointer p-1 rounded hover:bg-white/[0.05]"
-                    title="Archive column"
-                >
-                    <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                </button>
+                <div className="relative" ref={menuRef}>
+                    <button
+                        onClick={(e) => { e.stopPropagation(); setShowMenu(!showMenu) }}
+                        onPointerDown={(e) => e.stopPropagation()}
+                        className="text-white/0 group-hover/header:text-white/20 hover:!text-white/50 transition-colors cursor-pointer p-1 rounded hover:bg-white/[0.05]"
+                    >
+                        <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 12h.01M12 12h.01M19 12h.01" />
+                        </svg>
+                    </button>
+                    {showMenu && (
+                        <div className="absolute right-0 top-full mt-1 w-40 bg-surface border border-white/[0.08] rounded-lg shadow-xl z-20 py-1 animate-fade-in-up">
+                            <button
+                                onClick={() => { setShowMenu(false); startAdding() }}
+                                className="w-full flex items-center gap-2 px-3 py-1.5 text-[12px] text-white/50 hover:text-white/80 hover:bg-white/[0.05] transition-colors cursor-pointer"
+                            >
+                                <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+                                </svg>
+                                Add Card
+                            </button>
+                            <button
+                                onClick={() => { setShowMenu(false); setEditing(true) }}
+                                className="w-full flex items-center gap-2 px-3 py-1.5 text-[12px] text-white/50 hover:text-white/80 hover:bg-white/[0.05] transition-colors cursor-pointer"
+                            >
+                                <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                </svg>
+                                Rename
+                            </button>
+                            <div className="my-1 border-t border-white/[0.06]" />
+                            <button
+                                onClick={() => { setShowMenu(false); onArchiveColumn() }}
+                                className="w-full flex items-center gap-2 px-3 py-1.5 text-[12px] text-white/40 hover:text-red-400 hover:bg-red-400/10 transition-colors cursor-pointer"
+                            >
+                                <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+                                </svg>
+                                Archive List
+                            </button>
+                        </div>
+                    )}
+                </div>
             </div>
             <div className="flex-1 overflow-y-auto thin-scrollbar px-2 pb-1 space-y-1.5">
                 <SortableContext items={cards.map((c) => c.id)} strategy={verticalListSortingStrategy}>

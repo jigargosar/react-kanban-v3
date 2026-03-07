@@ -1,10 +1,12 @@
 import {
     DndContext,
     DragOverlay,
+    closestCenter,
     closestCorners,
     PointerSensor,
     useSensor,
     useSensors,
+    type CollisionDetection,
     type DragStartEvent,
     type DragOverEvent,
     type DragEndEvent,
@@ -50,6 +52,19 @@ export function Board({
     const [activeCard, setActiveCard] = useState<Card | null>(null)
     const [activeColumn, setActiveColumn] = useState<Column | null>(null)
     const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }))
+
+    const columnIds = new Set(columns.map((c) => c.id))
+    const collisionDetection: CollisionDetection = (args) => {
+        if (activeColumn) {
+            return closestCenter({
+                ...args,
+                droppableContainers: args.droppableContainers.filter(
+                    (container) => columnIds.has(container.id as string)
+                ),
+            })
+        }
+        return closestCorners(args)
+    }
 
     const handleDragStart = (event: DragStartEvent) => {
         const activeId = event.active.id as string
@@ -129,7 +144,7 @@ export function Board({
     return (
         <DndContext
             sensors={sensors}
-            collisionDetection={closestCorners}
+            collisionDetection={collisionDetection}
             onDragStart={handleDragStart}
             onDragOver={handleDragOver}
             onDragEnd={handleDragEnd}

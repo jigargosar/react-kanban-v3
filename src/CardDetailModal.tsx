@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import type { Card, Column, Label } from './types'
+import type { Card, Column, Comment, Label } from './types'
 import { LABEL_COLORS, labelDotClass, labelBgClass } from './types'
 
 type CardDetailModalProps = {
@@ -7,12 +7,15 @@ type CardDetailModalProps = {
     columns: Column[]
     labels: Label[]
     cardLabelIds: Set<string>
+    comments: Comment[]
     onUpdateTitle: (title: string) => void
     onUpdateDescription: (description: string) => void
     onUpdateDueDate: (date: string | null) => void
+    onUpdateCover: (color: string | null) => void
     onMoveToColumn: (columnId: string) => void
     onToggleLabel: (labelId: string) => void
     onCreateLabel: (title: string, color: string) => string
+    onAddComment: (content: string) => void
     onArchive: () => void
     onClose: () => void
 }
@@ -22,12 +25,15 @@ export function CardDetailModal({
     columns,
     labels,
     cardLabelIds,
+    comments,
     onUpdateTitle,
     onUpdateDescription,
     onUpdateDueDate,
+    onUpdateCover,
     onMoveToColumn,
     onToggleLabel,
     onCreateLabel,
+    onAddComment,
     onArchive,
     onClose,
 }: CardDetailModalProps) {
@@ -36,8 +42,10 @@ export function CardDetailModal({
     const [editingDesc, setEditingDesc] = useState(false)
     const [description, setDescription] = useState(card.description)
     const [showLabelPicker, setShowLabelPicker] = useState(false)
+    const [showCoverPicker, setShowCoverPicker] = useState(false)
     const [newLabelTitle, setNewLabelTitle] = useState('')
     const [newLabelColor, setNewLabelColor] = useState('green')
+    const [commentText, setCommentText] = useState('')
     const overlayRef = useRef<HTMLDivElement>(null)
 
     useEffect(() => {
@@ -78,6 +86,13 @@ export function CardDetailModal({
         setNewLabelTitle('')
     }
 
+    const submitComment = () => {
+        const trimmed = commentText.trim()
+        if (!trimmed) return
+        onAddComment(trimmed)
+        setCommentText('')
+    }
+
     const activeLabels = labels.filter((l) => cardLabelIds.has(l.id))
 
     const dueDate = card.due_date ? card.due_date.split('T')[0] : ''
@@ -90,6 +105,11 @@ export function CardDetailModal({
             className="fixed inset-0 z-50 flex items-start justify-center bg-black/60 backdrop-blur-sm pt-[8vh] overflow-y-auto animate-fade-in-up"
         >
             <div className="w-full max-w-2xl rounded-xl bg-surface border border-white/[0.08] shadow-2xl mb-12">
+                {/* Cover color band */}
+                {card.cover_color && (
+                    <div className={`h-10 rounded-t-xl ${LABEL_COLORS.find((c) => c.key === card.cover_color)?.dot ?? 'bg-gray-400'}`} />
+                )}
+
                 {/* Header */}
                 <div className="flex items-start justify-between p-5 pb-0">
                     <div className="flex-1 min-w-0">
@@ -178,6 +198,56 @@ export function CardDetailModal({
                                     <span className={card.description ? 'text-white/60' : 'text-white/20'}>
                                         {card.description || 'Add a description...'}
                                     </span>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Comments */}
+                        <div>
+                            <label className="text-[11px] font-medium text-white/25 uppercase tracking-wider">Activity</label>
+                            <div className="mt-2 flex gap-2">
+                                <div className="shrink-0 h-7 w-7 rounded-full bg-accent/20 flex items-center justify-center text-[10px] font-bold text-accent">
+                                    Y
+                                </div>
+                                <div className="flex-1">
+                                    <textarea
+                                        value={commentText}
+                                        onChange={(e) => setCommentText(e.target.value)}
+                                        onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submitComment() } }}
+                                        placeholder="Write a comment..."
+                                        rows={2}
+                                        className="w-full bg-white/[0.03] border border-white/[0.06] rounded-lg p-2.5 text-[12px] text-white/70 outline-none resize-none focus:border-accent/30 transition-colors placeholder:text-white/15"
+                                    />
+                                    {commentText.trim() && (
+                                        <button
+                                            onClick={submitComment}
+                                            className="mt-1.5 px-3 py-1 bg-accent text-surface text-[11px] font-semibold rounded-lg hover:brightness-110 transition-all cursor-pointer"
+                                        >
+                                            Save
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+                            {comments.length > 0 && (
+                                <div className="mt-3 space-y-3">
+                                    {comments.map((comment) => (
+                                        <div key={comment.id} className="flex gap-2">
+                                            <div className="shrink-0 h-7 w-7 rounded-full bg-white/[0.06] flex items-center justify-center text-[10px] font-bold text-white/30">
+                                                {comment.author_name[0].toUpperCase()}
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-[12px] font-medium text-white/60">{comment.author_name}</span>
+                                                    <span className="text-[10px] text-white/20">
+                                                        {new Date(comment.created_at).toLocaleDateString('en', { month: 'short', day: 'numeric' })}
+                                                        {' '}
+                                                        {new Date(comment.created_at).toLocaleTimeString('en', { hour: 'numeric', minute: '2-digit' })}
+                                                    </span>
+                                                </div>
+                                                <p className="text-[12px] text-white/50 mt-0.5 whitespace-pre-wrap">{comment.content}</p>
+                                            </div>
+                                        </div>
+                                    ))}
                                 </div>
                             )}
                         </div>
@@ -273,6 +343,42 @@ export function CardDetailModal({
                                 >
                                     Remove date
                                 </button>
+                            )}
+                        </div>
+
+                        {/* Cover color */}
+                        <div>
+                            <button
+                                onClick={() => setShowCoverPicker(!showCoverPicker)}
+                                className="w-full flex items-center gap-2 px-3 py-2 text-[12px] text-white/40 bg-white/[0.03] hover:bg-white/[0.06] rounded-lg transition-colors cursor-pointer"
+                            >
+                                <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                                Cover
+                            </button>
+                            {showCoverPicker && (
+                                <div className="mt-2 space-y-1.5">
+                                    <div className="flex flex-wrap gap-1.5">
+                                        {LABEL_COLORS.map((c) => (
+                                            <button
+                                                key={c.key}
+                                                onClick={() => onUpdateCover(c.key)}
+                                                className={`h-6 w-10 rounded ${c.dot} transition-all cursor-pointer ${
+                                                    card.cover_color === c.key ? 'ring-2 ring-white/50 scale-105' : 'opacity-60 hover:opacity-90'
+                                                }`}
+                                            />
+                                        ))}
+                                    </div>
+                                    {card.cover_color && (
+                                        <button
+                                            onClick={() => onUpdateCover(null)}
+                                            className="text-[10px] text-white/20 hover:text-white/40 transition-colors cursor-pointer"
+                                        >
+                                            Remove cover
+                                        </button>
+                                    )}
+                                </div>
                             )}
                         </div>
 

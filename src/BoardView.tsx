@@ -1,11 +1,11 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { supabase } from './supabase'
 import { generateKeyBetween } from 'fractional-indexing'
 import { Board } from './Board'
 import { Presence } from './Presence'
 import { CardDetailModal } from './CardDetailModal'
 import { QuickEditPopup } from './QuickEditPopup'
-import type { Column, Card, Label, CardLabel } from './types'
+import type { Column, Card, Label, CardLabel, Comment } from './types'
 
 type BoardViewProps = {
     boardId: string
@@ -16,11 +16,30 @@ export function BoardView({ boardId }: BoardViewProps) {
     const [cards, setCards] = useState<Card[]>([])
     const [labels, setLabels] = useState<Label[]>([])
     const [cardLabels, setCardLabels] = useState<CardLabel[]>([])
+    const [comments, setComments] = useState<Comment[]>([])
     const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading')
     const [selectedCardId, setSelectedCardId] = useState<string | null>(null)
     const [quickEditState, setQuickEditState] = useState<{ cardId: string; rect: DOMRect } | null>(null)
+    const [searchQuery, setSearchQuery] = useState('')
 
     const selectedCard = selectedCardId ? cards.find((c) => c.id === selectedCardId) ?? null : null
+
+    const searchLower = searchQuery.toLowerCase().trim()
+    const matchingCardIds = useMemo(() => {
+        if (!searchLower) return null
+        return new Set(
+            cards
+                .filter((c) => {
+                    if (c.title.toLowerCase().includes(searchLower)) return true
+                    if (c.description.toLowerCase().includes(searchLower)) return true
+                    const cardLabelNames = cardLabels
+                        .filter((cl) => cl.card_id === c.id)
+                        .map((cl) => labels.find((l) => l.id === cl.label_id)?.title ?? '')
+                    return cardLabelNames.some((name) => name.toLowerCase().includes(searchLower))
+                })
+                .map((c) => c.id)
+        )
+    }, [searchLower, cards, cardLabels, labels])
 
     useEffect(() => {
         const loadData = async () => {
@@ -134,15 +153,33 @@ export function BoardView({ boardId }: BoardViewProps) {
                     })
                 },
             )
+            .on(
+                'postgres_changes',
+                { event: '*', schema: 'public', table: 'comments' },
+                (payload) => {
+                    if (payload.eventType === 'DELETE') {
+                        setComments((prev) => prev.filter((c) => c.id !== payload.old.id))
+                        return
+                    }
+                    const comment = payload.new as Comment
+                    setComments((prev) => {
+                        const exists = prev.some((c) => c.id === comment.id)
+                        return exists
+                            ? prev.map((c) => c.id === comment.id ? comment : c)
+                            : [...prev, comment]
+                    })
+                },
+            )
             .subscribe()
 
         return () => { channel.unsubscribe() }
     }, [boardId])
 
-    const cardsForColumn = (columnId: string) =>
+    const cardsForColumn = useCallback((columnId: string) =>
         cards
-            .filter((c) => c.column_id === columnId)
-            .sort((a, b) => a.position < b.position ? -1 : 1)
+            .filter((c) => c.column_id === columnId && (!matchingCardIds || matchingCardIds.has(c.id)))
+            .sort((a, b) => a.position < b.position ? -1 : 1),
+    [cards, matchingCardIds])
 
     const labelsForCard = (cardId: string): Label[] => {
         const labelIds = cardLabels.filter((cl) => cl.card_id === cardId).map((cl) => cl.label_id)
@@ -164,7 +201,7 @@ export function BoardView({ boardId }: BoardViewProps) {
         const lastPosition = columnCards[columnCards.length - 1]?.position ?? null
         const position = generateKeyBetween(lastPosition, null)
         const id = crypto.randomUUID()
-        setCards((prev) => [...prev, { id, column_id: columnId, title, description: '', position, archived: false, due_date: null }])
+        setCards((prev) => [...prev, { id, column_id: columnId, title, description: '', position, archived: false, due_date: null, cover_color: null }])
         supabase.from('cards').insert({ id, column_id: columnId, title, position })
             .then(({ error }) => { if (error) console.error(error) })
     }
@@ -261,6 +298,37 @@ export function BoardView({ boardId }: BoardViewProps) {
         }
     }
 
+    const addComment = (cardId: string, content: string) => {
+        const id = crypto.randomUUID()
+        const comment: Comment = { id, card_id: cardId, author_name: 'You', content, created_at: new Date().toISOString() }
+        setComments((prev) => [...prev, comment])
+        supabase.from('comments').insert({ id, card_id: cardId, author_name: 'You', content })
+            .then(({ error }) => { if (error) console.error(error) })
+    }
+
+    const commentsForCard = (cardId: string) =>
+        comments
+            .filter((c) => c.card_id === cardId)
+            .sort((a, b) => a.created_at < b.created_at ? -1 : 1)
+
+    const updateCardCover = (cardId: string, coverColor: string | null) => {
+        setCards((prev) => prev.map((c) => c.id === cardId ? { ...c, cover_color: coverColor } : c))
+        supabase.from('cards').update({ cover_color: coverColor }).eq('id', cardId)
+            .then(({ error }) => { if (error) console.error(error) })
+    }
+
+    // Load comments when a card is selected
+    useEffect(() => {
+        if (!selectedCardId) return
+        supabase.from('comments').select('*').eq('card_id', selectedCardId).order('created_at')
+            .then(({ data }) => {
+                if (data) setComments((prev) => {
+                    const otherComments = prev.filter((c) => c.card_id !== selectedCardId)
+                    return [...otherComments, ...data]
+                })
+            })
+    }, [selectedCardId])
+
     if (status === 'loading') {
         return (
             <div className="flex-1 flex items-center justify-center">
@@ -292,6 +360,31 @@ export function BoardView({ boardId }: BoardViewProps) {
                         </span>
                         <span className="text-[11px] font-medium text-accent">LIVE</span>
                     </div>
+                    <div className="relative">
+                        <svg className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3 w-3 text-white/20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                        <input
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            onKeyDown={(e) => { if (e.key === 'Escape') { setSearchQuery(''); (e.target as HTMLElement).blur() } }}
+                            placeholder="Filter cards..."
+                            className="w-48 pl-8 pr-2 py-1.5 bg-white/[0.04] border border-white/[0.06] rounded-lg text-[12px] text-white/70 outline-none placeholder:text-white/15 focus:border-accent/30 focus:bg-white/[0.06] transition-all"
+                        />
+                        {searchQuery && (
+                            <button
+                                onClick={() => setSearchQuery('')}
+                                className="absolute right-2 top-1/2 -translate-y-1/2 text-white/20 hover:text-white/50 transition-colors cursor-pointer"
+                            >
+                                <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        )}
+                    </div>
+                    {matchingCardIds && (
+                        <span className="text-[11px] text-white/25">{matchingCardIds.size} found</span>
+                    )}
                 </div>
                 <Presence />
             </header>
@@ -339,12 +432,15 @@ export function BoardView({ boardId }: BoardViewProps) {
                     columns={columns}
                     labels={labels}
                     cardLabelIds={selectedCardLabelIds}
+                    comments={commentsForCard(selectedCard.id)}
                     onUpdateTitle={(title) => updateCardTitle(selectedCard.id, title)}
                     onUpdateDescription={(desc) => updateCardDescription(selectedCard.id, desc)}
                     onUpdateDueDate={(date) => updateCardDueDate(selectedCard.id, date)}
+                    onUpdateCover={(color) => updateCardCover(selectedCard.id, color)}
                     onMoveToColumn={(columnId) => moveCardToColumn(selectedCard.id, columnId)}
                     onToggleLabel={(labelId) => toggleCardLabel(selectedCard.id, labelId)}
                     onCreateLabel={createLabel}
+                    onAddComment={(content) => addComment(selectedCard.id, content)}
                     onArchive={() => archiveCard(selectedCard.id)}
                     onClose={() => setSelectedCardId(null)}
                 />

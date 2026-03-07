@@ -1,7 +1,11 @@
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import type { Card, Label } from './types'
-import { labelDotClass } from './types'
+import { LABEL_COLORS, labelDotClass } from './types'
+
+const COVER_COLORS: Record<string, string> = Object.fromEntries(
+    LABEL_COLORS.map((c) => [c.key, c.dot])
+)
 
 type KanbanCardProps = {
     card: Card
@@ -53,6 +57,9 @@ export function KanbanCard({ card, labels = [], isOverlay, onQuickEdit, onClick 
                         <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                     </svg>
                 </button>
+            )}
+            {card.cover_color && (
+                <div className={`h-8 rounded-t-lg ${COVER_COLORS[card.cover_color] ?? 'bg-gray-400'}`} />
             )}
             <div className="p-2.5">
                 {labels.length > 0 && (
