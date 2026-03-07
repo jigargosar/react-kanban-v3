@@ -4,7 +4,7 @@ import { generateKeyBetween } from 'fractional-indexing'
 import { Board } from './Board'
 import { Presence } from './Presence'
 import { CardDetailModal } from './CardDetailModal'
-import type { Column, Card } from './types'
+import type { Column, Card, Label, CardLabel } from './types'
 
 type BoardViewProps = {
     boardId: string
@@ -13,30 +13,47 @@ type BoardViewProps = {
 export function BoardView({ boardId }: BoardViewProps) {
     const [columns, setColumns] = useState<Column[]>([])
     const [cards, setCards] = useState<Card[]>([])
+    const [labels, setLabels] = useState<Label[]>([])
+    const [cardLabels, setCardLabels] = useState<CardLabel[]>([])
     const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading')
     const [selectedCardId, setSelectedCardId] = useState<string | null>(null)
 
     const selectedCard = selectedCardId ? cards.find((c) => c.id === selectedCardId) ?? null : null
 
     useEffect(() => {
-        supabase.from('columns').select('*').eq('board_id', boardId).eq('archived', false).order('position')
-            .then(({ data: cols, error: colErr }) => {
-                if (colErr) { setStatus('error'); return }
-                const columnData = cols ?? []
-                setColumns(columnData)
-                const columnIds = columnData.map((c) => c.id)
-                if (columnIds.length === 0) {
-                    setCards([])
-                    setStatus('ready')
-                    return
-                }
-                supabase.from('cards').select('*').in('column_id', columnIds).eq('archived', false).order('position')
-                    .then(({ data: cardData, error: cardErr }) => {
-                        if (cardErr) { setStatus('error'); return }
-                        setCards(cardData ?? [])
-                        setStatus('ready')
-                    })
-            })
+        const loadData = async () => {
+            const { data: cols, error: colErr } = await supabase
+                .from('columns').select('*').eq('board_id', boardId).eq('archived', false).order('position')
+
+            if (colErr) { setStatus('error'); return }
+            const columnData = cols ?? []
+            setColumns(columnData)
+
+            const columnIds = columnData.map((c) => c.id)
+
+            const [cardsRes, labelsRes] = await Promise.all([
+                columnIds.length > 0
+                    ? supabase.from('cards').select('*').in('column_id', columnIds).eq('archived', false).order('position')
+                    : Promise.resolve({ data: [] as Card[], error: null }),
+                supabase.from('labels').select('*').eq('board_id', boardId).order('position'),
+            ])
+
+            if (cardsRes.error || labelsRes.error) { setStatus('error'); return }
+            const cardData = cardsRes.data ?? []
+            setCards(cardData)
+            setLabels(labelsRes.data ?? [])
+
+            if (cardData.length > 0) {
+                const cardIds = cardData.map((c) => c.id)
+                const { data: clData } = await supabase
+                    .from('card_labels').select('*').in('card_id', cardIds)
+                setCardLabels(clData ?? [])
+            }
+
+            setStatus('ready')
+        }
+
+        loadData()
 
         const channel = supabase
             .channel(`board-${boardId}`)
@@ -78,6 +95,43 @@ export function BoardView({ boardId }: BoardViewProps) {
                     })
                 },
             )
+            .on(
+                'postgres_changes',
+                { event: '*', schema: 'public', table: 'labels', filter: `board_id=eq.${boardId}` },
+                (payload) => {
+                    if (payload.eventType === 'DELETE') {
+                        setLabels((prev) => prev.filter((l) => l.id !== payload.old.id))
+                        setCardLabels((prev) => prev.filter((cl) => cl.label_id !== payload.old.id))
+                        return
+                    }
+                    const label = payload.new as Label
+                    setLabels((prev) => {
+                        const exists = prev.some((l) => l.id === label.id)
+                        const next = exists
+                            ? prev.map((l) => l.id === label.id ? label : l)
+                            : [...prev, label]
+                        return next.sort((a, b) => a.position < b.position ? -1 : 1)
+                    })
+                },
+            )
+            .on(
+                'postgres_changes',
+                { event: '*', schema: 'public', table: 'card_labels' },
+                (payload) => {
+                    if (payload.eventType === 'DELETE') {
+                        const old = payload.old as CardLabel
+                        setCardLabels((prev) =>
+                            prev.filter((cl) => !(cl.card_id === old.card_id && cl.label_id === old.label_id))
+                        )
+                        return
+                    }
+                    const cl = payload.new as CardLabel
+                    setCardLabels((prev) => {
+                        const exists = prev.some((x) => x.card_id === cl.card_id && x.label_id === cl.label_id)
+                        return exists ? prev : [...prev, cl]
+                    })
+                },
+            )
             .subscribe()
 
         return () => { channel.unsubscribe() }
@@ -87,6 +141,11 @@ export function BoardView({ boardId }: BoardViewProps) {
         cards
             .filter((c) => c.column_id === columnId)
             .sort((a, b) => a.position < b.position ? -1 : 1)
+
+    const labelsForCard = (cardId: string): Label[] => {
+        const labelIds = cardLabels.filter((cl) => cl.card_id === cardId).map((cl) => cl.label_id)
+        return labels.filter((l) => labelIds.includes(l.id))
+    }
 
     const addColumn = () => {
         const lastPosition = columns[columns.length - 1]?.position ?? null
@@ -103,13 +162,14 @@ export function BoardView({ boardId }: BoardViewProps) {
         const lastPosition = columnCards[columnCards.length - 1]?.position ?? null
         const position = generateKeyBetween(lastPosition, null)
         const id = crypto.randomUUID()
-        setCards((prev) => [...prev, { id, column_id: columnId, title, description: '', position, archived: false }])
+        setCards((prev) => [...prev, { id, column_id: columnId, title, description: '', position, archived: false, due_date: null }])
         supabase.from('cards').insert({ id, column_id: columnId, title, position })
             .then(({ error }) => { if (error) console.error(error) })
     }
 
     const archiveCard = (cardId: string) => {
         setCards((prev) => prev.filter((c) => c.id !== cardId))
+        setCardLabels((prev) => prev.filter((cl) => cl.card_id !== cardId))
         if (selectedCardId === cardId) setSelectedCardId(null)
         supabase.from('cards').update({ archived: true }).eq('id', cardId)
             .then(({ error }) => { if (error) console.error(error) })
@@ -131,6 +191,12 @@ export function BoardView({ boardId }: BoardViewProps) {
     const updateCardDescription = (cardId: string, description: string) => {
         setCards((prev) => prev.map((c) => c.id === cardId ? { ...c, description } : c))
         supabase.from('cards').update({ description }).eq('id', cardId)
+            .then(({ error }) => { if (error) console.error(error) })
+    }
+
+    const updateCardDueDate = (cardId: string, dueDate: string | null) => {
+        setCards((prev) => prev.map((c) => c.id === cardId ? { ...c, due_date: dueDate } : c))
+        supabase.from('cards').update({ due_date: dueDate }).eq('id', cardId)
             .then(({ error }) => { if (error) console.error(error) })
     }
 
@@ -160,6 +226,39 @@ export function BoardView({ boardId }: BoardViewProps) {
         setCards((prev) => prev.map((c) => c.id === cardId ? { ...c, column_id: columnId } : c))
     }
 
+    const moveColumn = (columnId: string, position: string) => {
+        setColumns((prev) =>
+            prev.map((c) => c.id === columnId ? { ...c, position } : c)
+                .sort((a, b) => a.position < b.position ? -1 : 1)
+        )
+        supabase.from('columns').update({ position }).eq('id', columnId)
+            .then(({ error }) => { if (error) console.error(error) })
+    }
+
+    const createLabel = (title: string, color: string) => {
+        const lastPosition = labels[labels.length - 1]?.position ?? null
+        const position = generateKeyBetween(lastPosition, null)
+        const id = crypto.randomUUID()
+        setLabels((prev) => [...prev, { id, board_id: boardId, title, color, position }])
+        supabase.from('labels').insert({ id, board_id: boardId, title, color, position })
+            .then(({ error }) => { if (error) console.error(error) })
+        return id
+    }
+
+
+    const toggleCardLabel = (cardId: string, labelId: string) => {
+        const exists = cardLabels.some((cl) => cl.card_id === cardId && cl.label_id === labelId)
+        if (exists) {
+            setCardLabels((prev) => prev.filter((cl) => !(cl.card_id === cardId && cl.label_id === labelId)))
+            supabase.from('card_labels').delete().eq('card_id', cardId).eq('label_id', labelId)
+                .then(({ error }) => { if (error) console.error(error) })
+        } else {
+            setCardLabels((prev) => [...prev, { card_id: cardId, label_id: labelId }])
+            supabase.from('card_labels').insert({ card_id: cardId, label_id: labelId })
+                .then(({ error }) => { if (error) console.error(error) })
+        }
+    }
+
     if (status === 'loading') {
         return (
             <div className="flex-1 flex items-center justify-center">
@@ -175,6 +274,10 @@ export function BoardView({ boardId }: BoardViewProps) {
             </div>
         )
     }
+
+    const selectedCardLabelIds = selectedCard
+        ? new Set(cardLabels.filter((cl) => cl.card_id === selectedCard.id).map((cl) => cl.label_id))
+        : new Set<string>()
 
     return (
         <div className="flex-1 flex flex-col overflow-hidden">
@@ -195,6 +298,7 @@ export function BoardView({ boardId }: BoardViewProps) {
                     columns={columns}
                     cards={cards}
                     cardsForColumn={cardsForColumn}
+                    labelsForCard={labelsForCard}
                     onAddColumn={addColumn}
                     onAddCard={addCard}
                     onArchiveCard={archiveCard}
@@ -203,6 +307,7 @@ export function BoardView({ boardId }: BoardViewProps) {
                     onUpdateColumnTitle={updateColumnTitle}
                     onMoveCard={moveCard}
                     onMoveCardLocally={moveCardLocally}
+                    onMoveColumn={moveColumn}
                     onCardClick={setSelectedCardId}
                 />
             </div>
@@ -210,9 +315,14 @@ export function BoardView({ boardId }: BoardViewProps) {
                 <CardDetailModal
                     card={selectedCard}
                     columns={columns}
+                    labels={labels}
+                    cardLabelIds={selectedCardLabelIds}
                     onUpdateTitle={(title) => updateCardTitle(selectedCard.id, title)}
                     onUpdateDescription={(desc) => updateCardDescription(selectedCard.id, desc)}
+                    onUpdateDueDate={(date) => updateCardDueDate(selectedCard.id, date)}
                     onMoveToColumn={(columnId) => moveCardToColumn(selectedCard.id, columnId)}
+                    onToggleLabel={(labelId) => toggleCardLabel(selectedCard.id, labelId)}
+                    onCreateLabel={createLabel}
                     onArchive={() => archiveCard(selectedCard.id)}
                     onClose={() => setSelectedCardId(null)}
                 />

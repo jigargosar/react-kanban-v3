@@ -1,12 +1,13 @@
-import { useDroppable } from '@dnd-kit/core'
-import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
+import { SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
 import { useRef, useState } from 'react'
 import { SortableCard } from './Card'
-import type { Card, Column } from './types'
+import type { Card, Column, Label } from './types'
 
 type KanbanColumnProps = {
     column: Column
     cards: Card[]
+    labelsForCard: (cardId: string) => Label[]
     onAddCard: (title: string) => void
     onArchiveCard: (cardId: string) => void
     onArchiveColumn: () => void
@@ -18,6 +19,7 @@ type KanbanColumnProps = {
 export function KanbanColumn({
     column,
     cards,
+    labelsForCard,
     onAddCard,
     onArchiveCard,
     onArchiveColumn,
@@ -25,7 +27,19 @@ export function KanbanColumn({
     onUpdateColumnTitle,
     onCardClick,
 }: KanbanColumnProps) {
-    const { setNodeRef } = useDroppable({ id: column.id })
+    const {
+        attributes,
+        listeners,
+        setNodeRef,
+        transform,
+        transition,
+        isDragging,
+    } = useSortable({ id: column.id })
+    const style = {
+        transform: CSS.Transform.toString(transform),
+        transition,
+        opacity: isDragging ? 0.3 : 1,
+    }
     const [editing, setEditing] = useState(false)
     const [title, setTitle] = useState(column.title)
     const [adding, setAdding] = useState(false)
@@ -61,9 +75,15 @@ export function KanbanColumn({
     return (
         <div
             ref={setNodeRef}
+            style={style}
             className="shrink-0 w-72 rounded-xl bg-white/[0.03] border border-white/[0.06] flex flex-col max-h-[calc(100vh-8rem)] animate-fade-in-up"
         >
-            <div className="flex items-center justify-between px-3 py-2.5">
+            <div className="flex items-center justify-between px-3 py-2.5 cursor-grab active:cursor-grabbing group/header" {...attributes} {...listeners}>
+                <svg className="h-3 w-3 text-white/0 group-hover/header:text-white/15 shrink-0 mr-1 transition-colors" viewBox="0 0 24 24" fill="currentColor">
+                    <circle cx="9" cy="6" r="1.5" /><circle cx="15" cy="6" r="1.5" />
+                    <circle cx="9" cy="12" r="1.5" /><circle cx="15" cy="12" r="1.5" />
+                    <circle cx="9" cy="18" r="1.5" /><circle cx="15" cy="18" r="1.5" />
+                </svg>
                 {editing ? (
                     <input
                         value={title}
@@ -99,6 +119,7 @@ export function KanbanColumn({
                         <SortableCard
                             key={card.id}
                             card={card}
+                            labels={labelsForCard(card.id)}
                             onArchive={() => onArchiveCard(card.id)}
                             onUpdateTitle={(t) => onUpdateCardTitle(card.id, t)}
                             onClick={() => onCardClick(card.id)}
