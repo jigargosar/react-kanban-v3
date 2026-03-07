@@ -6,12 +6,12 @@ Task Board
 
 # Ready
 
-# InProgress
-
 1. Mutation queue for Supabase writes
 2. Label pills on cards: show label name on hover
 3. Column drag: dashed accent placeholder showing drop position
 4. Label renaming (edit pencil on label bars)
+
+# InProgress
 
 # Done
 
