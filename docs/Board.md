@@ -6,8 +6,6 @@ Task Board
 
 # Ready
 
-1. UI: overhaul
-
 # InProgress
 
 1. Mutation queue for Supabase writes
@@ -27,3 +25,4 @@ Task Board
 6. Seed clean demo board with realistic content
 7. Deploy to Netlify + README with screenshot and live link
 8. Label pills on cards: show label name on hover
+9. UI: overhaul
