@@ -1,6 +1,6 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import { App } from '../docs/spikes/supabase-realtime/src/App'
+import { App } from './App'
 
 createRoot(document.getElementById('app')!).render(
     <StrictMode>

@@ -21,7 +21,7 @@ export function ReorderList({ items, setItems }: ReorderListProps) {
                 .sort((a, b) => a.position < b.position ? -1 : 1)
         )
 
-        supabase.from('spike_items').update({ position: newPosition }).eq('id', item.id).then().catch(console.error)
+        supabase.from('spike_items').update({ position: newPosition }).eq('id', item.id).then(({ error }) => { if (error) console.error(error) })
     }
 
     const moveDown = (index: number) => {
@@ -36,12 +36,12 @@ export function ReorderList({ items, setItems }: ReorderListProps) {
                 .sort((a, b) => a.position < b.position ? -1 : 1)
         )
 
-        supabase.from('spike_items').update({ position: newPosition }).eq('id', item.id).then().catch(console.error)
+        supabase.from('spike_items').update({ position: newPosition }).eq('id', item.id).then(({ error }) => { if (error) console.error(error) })
     }
 
     const deleteItem = (id: string) => {
         setItems((prev) => prev.filter((i) => i.id !== id))
-        supabase.from('spike_items').delete().eq('id', id).then().catch(console.error)
+        supabase.from('spike_items').delete().eq('id', id).then(({ error }) => { if (error) console.error(error) })
     }
 
     const addItem = () => {
@@ -51,7 +51,7 @@ export function ReorderList({ items, setItems }: ReorderListProps) {
         const id = crypto.randomUUID()
 
         setItems((prev) => [...prev, { id, text, position: newPosition }])
-        supabase.from('spike_items').insert({ id, text, position: newPosition }).then().catch(console.error)
+        supabase.from('spike_items').insert({ id, text, position: newPosition }).then(({ error }) => { if (error) console.error(error) })
     }
 
     return (
