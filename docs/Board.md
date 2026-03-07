@@ -9,11 +9,13 @@ Task Board
 # InProgress
 
 1. Mutation queue for Supabase writes
-2. Labels: Trello-style colored bars, default labels seeded per board
+2. Label pills on cards: show label name on hover
 3. Column drag: dashed accent placeholder showing drop position
 4. Label renaming (edit pencil on label bars)
 
 # Done
+
+1. Labels: Trello-style colored bars, default labels seeded per board
 
 # Backlog
 
@@ -24,5 +26,4 @@ Task Board
 5. Keyboard shortcuts (n=new card, e=edit, l=labels, Esc=close)
 6. Seed clean demo board with realistic content
 7. Deploy to Netlify + README with screenshot and live link
-8. Label pills on cards: show label name on hover
-9. UI: overhaul
+8. UI: overhaul
