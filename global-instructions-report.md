@@ -219,3 +219,45 @@ All standards below serve this principle and must be followed when designing and
 3. **Should we add a negative constraint** to strengthen the combined pattern? (e.g., "Don't optimize for performance or cleverness at the expense of comprehension")
 4. **Are there other adjustments** to our existing CLAUDE.md / rules files suggested by this research?
 5. **The contradiction resolution** — does the "positive route + negative constraint + rationale" pattern feel right?
+
+---
+
+## Active Investigation Threads
+
+Unresolved items that need further research before we can act on them.
+
+### 1. Prohibitions vs Positive Framing (A vs B contradiction)
+
+Finding A says prohibitions are the highest-value section. Finding B says positive framing beats negative. Community pattern C (positive route + negative constraint + rationale) appears to resolve the conflict but is unverified. We don't have enough evidence to trust any single approach as universal.
+
+**Status:** Needs further research. No conclusions yet.
+
+### 2. Rationale: Signal or Noise?
+
+Does including "why" with a rule help or hurt?
+
+1. Smaller instruction set = more effective (established fact)
+2. AI doesn't care about rationale (anecdotal, source forgotten, unverified)
+3. Community says rationale increases weight — "the 'why' turns a single rule into a class of behaviors" (contradicts #2)
+
+**Open question:** Does rationale bloat the instruction count (noise) or act as a force multiplier that makes the attached instruction stick better (signal)?
+
+**Status:** Unresolved. Need to test both approaches.
+
+### 3. The Stubborn Instructions Problem
+
+Some instructions get violated despite following all known best practices. Concrete examples from `communication.md`:
+
+1. "Use numbered lists (1. 2. 3.) with alphabets for sub-items" — repeatedly violated with bullet points
+2. "Always include a recommendation when presenting options" — frequently omitted
+3. "Never leave options blank/bare" — still happens
+
+These instructions are: positively framed, specific, verifiable, in a dedicated rules file, loaded every session. Yet they still get ignored.
+
+**Possible angles to investigate:**
+1. Position in file — lost in the middle?
+2. Instruction ceiling reached — too many total instructions?
+3. Conflicts with Claude's training defaults — bullet points and open-ended prompts are deeply ingrained?
+4. Needs emphasis (IMPORTANT/MUST) or hooks instead of better phrasing?
+
+**Status:** Unsolved. This is the strongest evidence that current best practices are insufficient for certain instruction types.
