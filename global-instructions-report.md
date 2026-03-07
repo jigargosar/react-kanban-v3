@@ -14,23 +14,10 @@ This report captures all research findings to inform whether our current approac
 
 ## How CLAUDE.md Files Actually Work
 
-### Loading Mechanism
-- CLAUDE.md is loaded as a **user message following the system prompt**, NOT as part of the system prompt itself
-- The system prompt is proprietary and unpublished
-- Rules files (without `paths` frontmatter) load the same way — into context at session start
-- Path-scoped rules load lazily when matching files are accessed
-
-### Priority Order (highest to lowest)
-1. Managed policy (org-wide)
-2. Command line arguments
-3. Local (`./CLAUDE.local.md`)
-4. Project (`./CLAUDE.md`)
-5. User (`~/.claude/CLAUDE.md`) — lowest priority
-
-### Key Implication
-- CLAUDE.md is **advisory context, not enforcement**
-- "Because they're context rather than enforced configuration, how you write instructions affects how reliably Claude follows them"
-- For true enforcement, use **hooks** (deterministic, 100% reliable)
+1. `[Off]` CLAUDE.md is loaded as a **user message following the system prompt**, not part of the system prompt itself (which is proprietary and unpublished)
+2. `[Off]` Rules files (without `paths` frontmatter) load the same way — into context at session start. Path-scoped rules load lazily when matching files are accessed.
+3. `[Off]` Priority order (highest to lowest): Managed policy > CLI args > Local (.local.md) > Project (./CLAUDE.md) > User (~/.claude/CLAUDE.md)
+4. `[Off]` CLAUDE.md is advisory context, not enforcement — how you write instructions affects how reliably they're followed. For true enforcement, use hooks (deterministic, 100% reliable).
 
 ---
 
@@ -151,34 +138,11 @@ The strong version: positive route + negative constraint + rationale.
 
 ## Other Findings Worth Noting
 
-### Code Style via Instructions is Low-ROI
-> "One of the most common things people put in CLAUDE.md is code style guidelines. Code style guidelines will inevitably add a bunch of instructions into your context window, degrading performance."
-> "Don't use your CLAUDE.md to document code style guidelines and expect Claude to apply them perfectly. Instead, continue using a linter."
-> "Never send an LLM to do a linter's job."
-
-**Implication for us:** Our code-standards.md contains design principles (ISI, SSOT, TDA) not formatting rules. These are NOT linter-replaceable — they require judgment. So this pitfall doesn't apply directly, but it's worth noting.
-
-### Common Pitfalls Section is Highest ROI
-> "A 'Common Pitfalls' section with five lines — each one prevents a mistake that would take 10-15 minutes to catch in review. This is the highest ROI per line of any CLAUDE.md section."
-> "Basically documenting the bugs you've already fixed so Claude doesn't reintroduce them."
-
-### The Five-Layer System
-CLAUDE.md is one layer in a five-layer system:
-1. **Settings** — deterministic configuration
-2. **Hooks** — deterministic enforcement (100% reliable)
-3. **Memory** — CLAUDE.md + auto memory (advisory)
-4. **Skills** — on-demand routines (save tokens)
-5. **Rules** — .claude/rules/ files (modular, can be path-scoped)
-
-Decision framework: "CLAUDE.md for context, skills for routines, hooks for guarantees."
-
-### Compaction Awareness
-> "If compaction fires while the agent is mid-debugging, the summary may drop the exact error message or file path."
-
-Consider adding: "When compacting, always preserve [critical items]."
-
-### Progressive Disclosure
-> "Using progressive disclosure across skills can recover roughly 15,000 tokens per session, an 82% improvement over loading everything into CLAUDE.md upfront."
+1. `[Com]` Code style via instructions is low-ROI — use linters instead. (Our code-standards.md has design principles, not formatting rules, so this doesn't apply directly.)
+2. `[Com]` A "Common Pitfalls" section is the highest ROI per line — documenting bugs you've already fixed prevents Claude from reintroducing them.
+3. `[Com]` CLAUDE.md is one layer in a five-layer system: settings, hooks (enforcement), memory (advisory), skills (on-demand), rules (modular). "CLAUDE.md for context, skills for routines, hooks for guarantees."
+4. `[Com]` Compaction can drop error messages and file paths mid-debugging — consider adding preservation instructions.
+5. `[Com]` Progressive disclosure via skills can recover ~15,000 tokens per session (82% improvement over loading everything in CLAUDE.md).
 
 ---
 
@@ -214,11 +178,11 @@ All standards below serve this principle and must be followed when designing and
 
 ## Decisions Needed
 
-1. **Imperative vs declarative voice** — should we change "Code is written for humans" to "Write code for humans"?
-2. **Is the CLAUDE.md one-liner specific enough** or does it risk being treated as self-evident?
-3. **Should we add a negative constraint** to strengthen the combined pattern? (e.g., "Don't optimize for performance or cleverness at the expense of comprehension")
-4. **Are there other adjustments** to our existing CLAUDE.md / rules files suggested by this research?
-5. **The contradiction resolution** — does the "positive route + negative constraint + rationale" pattern feel right?
+1. Should we change "Code is written for humans" to imperative "Write code for humans"?
+2. Is the CLAUDE.md one-liner specific enough or does it risk being treated as self-evident?
+3. Should we add a negative constraint to strengthen? (e.g., "Don't optimize for performance or cleverness at the expense of comprehension")
+4. Are there other adjustments to our existing CLAUDE.md / rules files suggested by this research?
+5. Does the "positive route + negative constraint + rationale" pattern hold up given the A vs B contradiction?
 
 ---
 
@@ -236,9 +200,9 @@ Finding A says prohibitions are the highest-value section. Finding B says positi
 
 Does including "why" with a rule help or hurt?
 
-1. Smaller instruction set = more effective (established fact)
+1. `[Off][Com]` Smaller instruction set = more effective (established)
 2. AI doesn't care about rationale (anecdotal, source forgotten, unverified)
-3. Community says rationale increases weight — "the 'why' turns a single rule into a class of behaviors" (contradicts #2)
+3. `[Com]` Rationale increases weight — "the 'why' turns a single rule into a class of behaviors" (contradicts #2)
 
 **Open question:** Does rationale bloat the instruction count (noise) or act as a force multiplier that makes the attached instruction stick better (signal)?
 
