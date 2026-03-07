@@ -21,6 +21,22 @@ Copy to .env at project root:
   VITE_SUPABASE_ANON_KEY=<from dashboard Settings > API>
   VITE_LIVEBLOCKS_PUBLIC_KEY=<from liveblocks.io dashboard>
 
+# Database Schema
+
+  boards      (id, title, position, archived)
+  columns     (id, board_id, title, position, archived)
+  cards       (id, column_id, title, description, position, archived, due_date)
+  labels      (id, board_id, title, color, position)
+  card_labels (card_id, label_id) -- junction table
+
+All tables: RLS enabled, open anon policy, realtime enabled.
+
+Migrations (in supabase/migrations/):
+  20260306133156_spike_items.sql        -- spike table
+  20260307000000_kanban_tables.sql      -- columns + cards
+  20260307100000_boards_table.sql       -- boards + board_id on columns
+  20260307110000_labels_and_due_dates.sql -- labels, card_labels, due_date
+
 # Supabase CLI
 
 Installed locally via pnpm (not global). Already linked to the
