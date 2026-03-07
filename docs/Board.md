@@ -4,12 +4,9 @@ Task Board
 
 # InBasket
 
-1. UI: overhaul
-
 # Ready
 
-1. Seed clean demo board with realistic content
-2. Deploy to Netlify + README with screenshot and live link
+1. UI: overhaul
 
 # InProgress
 
@@ -27,3 +24,5 @@ Task Board
 3. Board sharing and invite links
 4. Archive view (browse and restore archived cards/columns)
 5. Keyboard shortcuts (n=new card, e=edit, l=labels, Esc=close)
+6. Seed clean demo board with realistic content
+7. Deploy to Netlify + README with screenshot and live link
