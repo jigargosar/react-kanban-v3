@@ -12,6 +12,7 @@ type KanbanColumnProps = {
     onArchiveColumn: () => void
     onUpdateCardTitle: (cardId: string, title: string) => void
     onUpdateColumnTitle: (title: string) => void
+    onCardClick: (cardId: string) => void
 }
 
 export function KanbanColumn({
@@ -22,6 +23,7 @@ export function KanbanColumn({
     onArchiveColumn,
     onUpdateCardTitle,
     onUpdateColumnTitle,
+    onCardClick,
 }: KanbanColumnProps) {
     const { setNodeRef } = useDroppable({ id: column.id })
     const [editing, setEditing] = useState(false)
@@ -99,6 +101,7 @@ export function KanbanColumn({
                             card={card}
                             onArchive={() => onArchiveCard(card.id)}
                             onUpdateTitle={(t) => onUpdateCardTitle(card.id, t)}
+                            onClick={() => onCardClick(card.id)}
                         />
                     ))}
                 </SortableContext>
