@@ -86,11 +86,11 @@ export function QuickEditPopup({
             >
                 <div className="rounded-xl bg-surface-raised border border-white/[0.1] shadow-[0_12px_48px_rgba(0,0,0,0.6),0_0_0_1px_rgba(255,255,255,0.04)] overflow-hidden">
                     {activeLabels.length > 0 && (
-                        <div className="flex flex-wrap gap-1 px-3 pt-2.5">
+                        <div className="flex flex-wrap gap-1 px-3 pt-3">
                             {activeLabels.map((label) => (
                                 <span
                                     key={label.id}
-                                    className={`h-1.5 w-6 rounded-full ${labelDotClass(label.color)}`}
+                                    className={`h-2 w-8 rounded-sm ${labelDotClass(label.color)}`}
                                 />
                             ))}
                         </div>

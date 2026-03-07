@@ -34,7 +34,7 @@ export function Sidebar({
                 </div>
             </div>
             <div className="flex-1 overflow-y-auto thin-scrollbar py-3 px-2">
-                <p className="px-2 pb-2 text-[11px] font-medium text-white/20 uppercase tracking-wider">
+                <p className="px-2 pb-2 text-[10px] font-semibold text-white/25 uppercase tracking-wider">
                     Boards
                 </p>
                 <div className="space-y-0.5">
@@ -84,10 +84,10 @@ function SidebarBoardItem({ board, isSelected, onSelect, onArchive, onUpdateTitl
 
     return (
         <div
-            className={`group flex items-center gap-2 px-3 py-1.5 rounded-lg cursor-pointer transition-all ${
+            className={`group flex items-center gap-2 px-3 py-2 rounded-lg cursor-pointer transition-all ${
                 isSelected
-                    ? 'bg-white/[0.06] text-white'
-                    : 'text-white/35 hover:text-white/60 hover:bg-white/[0.03]'
+                    ? 'bg-accent/10 text-white/90'
+                    : 'text-white/40 hover:text-white/65 hover:bg-white/[0.04]'
             }`}
             onClick={onSelect}
         >

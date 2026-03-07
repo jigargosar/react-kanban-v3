@@ -89,7 +89,7 @@ export function KanbanColumn({
             className={`shrink-0 w-72 rounded-xl flex flex-col max-h-[calc(100vh-8rem)] animate-fade-in-up ${
                 isDragging
                     ? 'bg-white/[0.02] border-2 border-dashed border-accent/30'
-                    : 'bg-white/[0.03] border border-white/[0.06]'
+                    : 'bg-white/[0.035] border border-white/[0.07]'
             }`}
         >
             <div className="flex items-center justify-between px-3 py-2.5 cursor-grab active:cursor-grabbing group/header" {...attributes} {...listeners}>
@@ -109,10 +109,10 @@ export function KanbanColumn({
                     />
                 ) : (
                     <div className="flex items-center gap-2 flex-1 min-w-0" onDoubleClick={() => setEditing(true)}>
-                        <h2 className="text-[13px] font-semibold text-white/70 cursor-pointer uppercase tracking-wider truncate">
+                        <h2 className="text-[13px] font-medium text-white/50 cursor-pointer truncate">
                             {column.title}
                         </h2>
-                        <span className="text-[11px] font-medium text-white/20 bg-white/[0.05] rounded-full px-1.5 py-0.5 min-w-[20px] text-center shrink-0">
+                        <span className="text-[10px] font-medium text-white/25 bg-white/[0.06] rounded-full px-1.5 py-0.5 min-w-[18px] text-center shrink-0">
                             {cards.length}
                         </span>
                     </div>

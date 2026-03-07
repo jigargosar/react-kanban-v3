@@ -42,10 +42,10 @@ export function KanbanCard({ card, labels = [], isOverlay, onQuickEdit, onClick 
         <div
             data-card-id={card.id}
             onClick={onClick}
-            className={`relative rounded-lg bg-surface-raised border text-[13px] text-white/80 group/card transition-all cursor-pointer ${
+            className={`relative rounded-lg bg-surface-raised text-[13px] text-white/85 group/card transition-all cursor-pointer ${
                 isOverlay
-                    ? 'rotate-2 shadow-[0_8px_30px_rgba(0,0,0,0.4)] border-accent/30 scale-105'
-                    : 'border-transparent hover:border-white/[0.08] hover:bg-white/[0.06]'
+                    ? 'rotate-2 shadow-[0_8px_30px_rgba(0,0,0,0.4)] border border-accent/30 scale-105'
+                    : 'border border-white/[0.06] hover:border-white/[0.12] hover:shadow-[0_2px_12px_rgba(0,0,0,0.25)]'
             }`}
         >
             {onQuickEdit && (
@@ -61,20 +61,20 @@ export function KanbanCard({ card, labels = [], isOverlay, onQuickEdit, onClick 
             {card.cover_color && (
                 <div className={`h-8 rounded-t-lg ${COVER_COLORS[card.cover_color] ?? 'bg-gray-400'}`} />
             )}
-            <div className="p-2.5">
+            <div className="p-3">
                 {labels.length > 0 && (
-                    <div className="flex flex-wrap gap-1 mb-1.5">
+                    <div className="flex flex-wrap gap-1 mb-2">
                         {labels.map((label) => (
                             <span
                                 key={label.id}
-                                className={`h-1.5 w-6 rounded-full ${labelDotClass(label.color)}`}
+                                className={`h-2 w-8 rounded-sm ${labelDotClass(label.color)}`}
                             />
                         ))}
                     </div>
                 )}
                 <span className="leading-relaxed">{card.title}</span>
                 {card.due_date && (
-                    <div className={`flex items-center gap-1 mt-1.5 text-[10px] ${isOverdue(card.due_date) ? 'text-red-400' : 'text-white/25'}`}>
+                    <div className={`flex items-center gap-1 mt-2 text-[10px] ${isOverdue(card.due_date) ? 'text-red-400' : 'text-white/35'}`}>
                         <svg className="h-2.5 w-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                             <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>

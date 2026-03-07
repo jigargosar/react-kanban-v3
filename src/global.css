@@ -2,11 +2,11 @@
 
 @theme {
     --font-sans: "Plus Jakarta Sans", system-ui, sans-serif;
-    --color-surface: oklch(0.16 0.01 260);
-    --color-surface-raised: oklch(0.19 0.01 260);
-    --color-border-subtle: oklch(0.25 0.01 260);
-    --color-accent: oklch(0.75 0.15 180);
-    --color-accent-dim: oklch(0.45 0.1 180);
+    --color-surface: oklch(0.145 0.01 260);          /* near-black blue-grey */
+    --color-surface-raised: oklch(0.215 0.012 260);  /* dark charcoal, cards */
+    --color-border-subtle: oklch(0.28 0.01 260);     /* muted grey, borders */
+    --color-accent: oklch(0.75 0.15 180);             /* vivid teal */
+    --color-accent-dim: oklch(0.45 0.1 180);          /* muted teal */
 }
 
 body {
@@ -16,8 +16,8 @@ body {
 }
 
 .dot-grid {
-    background-image: radial-gradient(circle, oklch(0.3 0 0 / 0.3) 1px, transparent 1px);
-    background-size: 24px 24px;
+    background-image: radial-gradient(circle, oklch(0.3 0 0 / 0.18) 1px, transparent 1px);
+    background-size: 28px 28px;
 }
 
 .hide-scrollbar {
