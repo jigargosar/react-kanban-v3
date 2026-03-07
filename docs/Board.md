@@ -10,12 +10,12 @@ Task Board
 
 # InProgress
 
-# Done
-
-1. Labels: Trello-style colored bars, default labels seeded per board
-2. Mutation queue for Supabase writes
+1. Mutation queue for Supabase writes
+2. Labels: Trello-style colored bars, default labels seeded per board
 3. Column drag: dashed accent placeholder showing drop position
 4. Label renaming (edit pencil on label bars)
+
+# Done
 
 # Backlog
 
