@@ -4,7 +4,8 @@ Task Board
 
 # InBasket
 
-1. Mutation queue for Supabase writes (decisions.md#mutation-queue)
+1. Column drag: no visual gap indicator showing drop position
+2. Mutation queue for Supabase writes (decisions.md#mutation-queue)
 
 # Ready
 
