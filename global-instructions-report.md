@@ -261,3 +261,15 @@ These instructions are: positively framed, specific, verifiable, in a dedicated 
 4. Needs emphasis (IMPORTANT/MUST) or hooks instead of better phrasing?
 
 **Status:** Unsolved. This is the strongest evidence that current best practices are insufficient for certain instruction types.
+
+### 4. Root Cause Investigation: Why Do Training Defaults Override Instructions?
+
+Hypothesis: some instructions fail not because of phrasing, position, or emphasis, but because they fight deeply ingrained training defaults (e.g., Claude's default output pattern is bullet-point markdown). If true, the fix isn't better phrasing — it's a fundamentally different mechanism.
+
+**To investigate:**
+1. Count total instructions across all files — are we near the 150-200 ceiling?
+2. Check positional placement of the violated rules — lost in middle?
+3. Search for community reports of Claude defaulting to bullets despite explicit instructions
+4. Empirical testing: fresh session, minimal instructions, progressively add the rule in different positions/phrasings/emphasis levels
+
+**Status:** Not started. Agreed to investigate, but parked for now.
