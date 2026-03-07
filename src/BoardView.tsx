@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { supabase } from './supabase'
+import { enqueue } from './mutationQueue'
 import { generateKeyBetween } from 'fractional-indexing'
 import { Board } from './Board'
 import { Presence } from './Presence'
@@ -192,8 +193,10 @@ export function BoardView({ boardId }: BoardViewProps) {
         const id = crypto.randomUUID()
         const title = `Column ${columns.length + 1}`
         setColumns((prev) => [...prev, { id, board_id: boardId, title, position, archived: false }])
-        supabase.from('columns').insert({ id, board_id: boardId, title, position })
-            .then(({ error }) => { if (error) console.error(error) })
+        enqueue(async () => {
+            const { error } = await supabase.from('columns').insert({ id, board_id: boardId, title, position })
+            if (error) console.error(error)
+        })
     }
 
     const addCard = (columnId: string, title: string) => {
@@ -202,47 +205,61 @@ export function BoardView({ boardId }: BoardViewProps) {
         const position = generateKeyBetween(lastPosition, null)
         const id = crypto.randomUUID()
         setCards((prev) => [...prev, { id, column_id: columnId, title, description: '', position, archived: false, due_date: null, cover_color: null }])
-        supabase.from('cards').insert({ id, column_id: columnId, title, position })
-            .then(({ error }) => { if (error) console.error(error) })
+        enqueue(async () => {
+            const { error } = await supabase.from('cards').insert({ id, column_id: columnId, title, position })
+            if (error) console.error(error)
+        })
     }
 
     const archiveCard = (cardId: string) => {
         setCards((prev) => prev.filter((c) => c.id !== cardId))
         setCardLabels((prev) => prev.filter((cl) => cl.card_id !== cardId))
         if (selectedCardId === cardId) setSelectedCardId(null)
-        supabase.from('cards').update({ archived: true }).eq('id', cardId)
-            .then(({ error }) => { if (error) console.error(error) })
+        enqueue(async () => {
+            const { error } = await supabase.from('cards').update({ archived: true }).eq('id', cardId)
+            if (error) console.error(error)
+        })
     }
 
     const archiveColumn = (columnId: string) => {
         setColumns((prev) => prev.filter((c) => c.id !== columnId))
         setCards((prev) => prev.filter((c) => c.column_id !== columnId))
-        supabase.from('columns').update({ archived: true }).eq('id', columnId)
-            .then(({ error }) => { if (error) console.error(error) })
+        enqueue(async () => {
+            const { error } = await supabase.from('columns').update({ archived: true }).eq('id', columnId)
+            if (error) console.error(error)
+        })
     }
 
     const updateCardTitle = (cardId: string, title: string) => {
         setCards((prev) => prev.map((c) => c.id === cardId ? { ...c, title } : c))
-        supabase.from('cards').update({ title }).eq('id', cardId)
-            .then(({ error }) => { if (error) console.error(error) })
+        enqueue(async () => {
+            const { error } = await supabase.from('cards').update({ title }).eq('id', cardId)
+            if (error) console.error(error)
+        })
     }
 
     const updateCardDescription = (cardId: string, description: string) => {
         setCards((prev) => prev.map((c) => c.id === cardId ? { ...c, description } : c))
-        supabase.from('cards').update({ description }).eq('id', cardId)
-            .then(({ error }) => { if (error) console.error(error) })
+        enqueue(async () => {
+            const { error } = await supabase.from('cards').update({ description }).eq('id', cardId)
+            if (error) console.error(error)
+        })
     }
 
     const updateCardDueDate = (cardId: string, dueDate: string | null) => {
         setCards((prev) => prev.map((c) => c.id === cardId ? { ...c, due_date: dueDate } : c))
-        supabase.from('cards').update({ due_date: dueDate }).eq('id', cardId)
-            .then(({ error }) => { if (error) console.error(error) })
+        enqueue(async () => {
+            const { error } = await supabase.from('cards').update({ due_date: dueDate }).eq('id', cardId)
+            if (error) console.error(error)
+        })
     }
 
     const updateColumnTitle = (columnId: string, title: string) => {
         setColumns((prev) => prev.map((c) => c.id === columnId ? { ...c, title } : c))
-        supabase.from('columns').update({ title }).eq('id', columnId)
-            .then(({ error }) => { if (error) console.error(error) })
+        enqueue(async () => {
+            const { error } = await supabase.from('columns').update({ title }).eq('id', columnId)
+            if (error) console.error(error)
+        })
     }
 
     const moveCard = (cardId: string, targetColumnId: string, position: string) => {
@@ -250,8 +267,10 @@ export function BoardView({ boardId }: BoardViewProps) {
             prev.map((c) => c.id === cardId ? { ...c, column_id: targetColumnId, position } : c)
                 .sort((a, b) => a.position < b.position ? -1 : 1)
         )
-        supabase.from('cards').update({ column_id: targetColumnId, position }).eq('id', cardId)
-            .then(({ error }) => { if (error) console.error(error) })
+        enqueue(async () => {
+            const { error } = await supabase.from('cards').update({ column_id: targetColumnId, position }).eq('id', cardId)
+            if (error) console.error(error)
+        })
     }
 
     const moveCardToColumn = (cardId: string, targetColumnId: string) => {
@@ -270,20 +289,34 @@ export function BoardView({ boardId }: BoardViewProps) {
             prev.map((c) => c.id === columnId ? { ...c, position } : c)
                 .sort((a, b) => a.position < b.position ? -1 : 1)
         )
-        supabase.from('columns').update({ position }).eq('id', columnId)
-            .then(({ error }) => { if (error) console.error(error) })
+        enqueue(async () => {
+            const { error } = await supabase.from('columns').update({ position }).eq('id', columnId)
+            if (error) console.error(error)
+        })
+    }
+
+    const updateLabelTitle = (labelId: string, title: string) => {
+        setLabels((prev) => prev.map((l) => l.id === labelId ? { ...l, title } : l))
+        enqueue(async () => {
+            const { error } = await supabase.from('labels').update({ title }).eq('id', labelId)
+            if (error) console.error(error)
+        })
     }
 
     const toggleCardLabel = (cardId: string, labelId: string) => {
         const exists = cardLabels.some((cl) => cl.card_id === cardId && cl.label_id === labelId)
         if (exists) {
             setCardLabels((prev) => prev.filter((cl) => !(cl.card_id === cardId && cl.label_id === labelId)))
-            supabase.from('card_labels').delete().eq('card_id', cardId).eq('label_id', labelId)
-                .then(({ error }) => { if (error) console.error(error) })
+            enqueue(async () => {
+                const { error } = await supabase.from('card_labels').delete().eq('card_id', cardId).eq('label_id', labelId)
+                if (error) console.error(error)
+            })
         } else {
             setCardLabels((prev) => [...prev, { card_id: cardId, label_id: labelId }])
-            supabase.from('card_labels').insert({ card_id: cardId, label_id: labelId })
-                .then(({ error }) => { if (error) console.error(error) })
+            enqueue(async () => {
+                const { error } = await supabase.from('card_labels').insert({ card_id: cardId, label_id: labelId })
+                if (error) console.error(error)
+            })
         }
     }
 
@@ -291,8 +324,10 @@ export function BoardView({ boardId }: BoardViewProps) {
         const id = crypto.randomUUID()
         const comment: Comment = { id, card_id: cardId, author_name: 'You', content, created_at: new Date().toISOString() }
         setComments((prev) => [...prev, comment])
-        supabase.from('comments').insert({ id, card_id: cardId, author_name: 'You', content })
-            .then(({ error }) => { if (error) console.error(error) })
+        enqueue(async () => {
+            const { error } = await supabase.from('comments').insert({ id, card_id: cardId, author_name: 'You', content })
+            if (error) console.error(error)
+        })
     }
 
     const commentsForCard = (cardId: string) =>
@@ -302,8 +337,10 @@ export function BoardView({ boardId }: BoardViewProps) {
 
     const updateCardCover = (cardId: string, coverColor: string | null) => {
         setCards((prev) => prev.map((c) => c.id === cardId ? { ...c, cover_color: coverColor } : c))
-        supabase.from('cards').update({ cover_color: coverColor }).eq('id', cardId)
-            .then(({ error }) => { if (error) console.error(error) })
+        enqueue(async () => {
+            const { error } = await supabase.from('cards').update({ cover_color: coverColor }).eq('id', cardId)
+            if (error) console.error(error)
+        })
     }
 
     // Load comments when a card is selected
@@ -408,6 +445,7 @@ export function BoardView({ boardId }: BoardViewProps) {
                         onUpdateTitle={(title) => updateCardTitle(qCard.id, title)}
                         onMoveToColumn={(columnId) => moveCardToColumn(qCard.id, columnId)}
                         onToggleLabel={(labelId) => toggleCardLabel(qCard.id, labelId)}
+                        onUpdateLabelTitle={updateLabelTitle}
                         onArchive={() => { archiveCard(qCard.id); setQuickEditState(null) }}
                         onOpenDetail={() => { setQuickEditState(null); setSelectedCardId(qCard.id) }}
                         onClose={() => setQuickEditState(null)}
@@ -427,6 +465,7 @@ export function BoardView({ boardId }: BoardViewProps) {
                     onUpdateCover={(color) => updateCardCover(selectedCard.id, color)}
                     onMoveToColumn={(columnId) => moveCardToColumn(selectedCard.id, columnId)}
                     onToggleLabel={(labelId) => toggleCardLabel(selectedCard.id, labelId)}
+                    onUpdateLabelTitle={updateLabelTitle}
                     onAddComment={(content) => addComment(selectedCard.id, content)}
                     onArchive={() => archiveCard(selectedCard.id)}
                     onClose={() => setSelectedCardId(null)}

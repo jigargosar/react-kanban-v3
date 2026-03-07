@@ -14,6 +14,7 @@ type CardDetailModalProps = {
     onUpdateCover: (color: string | null) => void
     onMoveToColumn: (columnId: string) => void
     onToggleLabel: (labelId: string) => void
+    onUpdateLabelTitle: (labelId: string, title: string) => void
     onAddComment: (content: string) => void
     onArchive: () => void
     onClose: () => void
@@ -31,6 +32,7 @@ export function CardDetailModal({
     onUpdateCover,
     onMoveToColumn,
     onToggleLabel,
+    onUpdateLabelTitle,
     onAddComment,
     onArchive,
     onClose,
@@ -40,6 +42,8 @@ export function CardDetailModal({
     const [editingDesc, setEditingDesc] = useState(false)
     const [description, setDescription] = useState(card.description)
     const [showLabelPicker, setShowLabelPicker] = useState(false)
+    const [editingLabelId, setEditingLabelId] = useState<string | null>(null)
+    const [editingLabelTitle, setEditingLabelTitle] = useState('')
     const [showCoverPicker, setShowCoverPicker] = useState(false)
     const [commentText, setCommentText] = useState('')
     const overlayRef = useRef<HTMLDivElement>(null)
@@ -258,20 +262,40 @@ export function CardDetailModal({
                             {showLabelPicker && (
                                 <div className="mt-2 space-y-1">
                                     {labels.map((label) => (
-                                        <button
-                                            key={label.id}
-                                            onClick={() => onToggleLabel(label.id)}
-                                            className={`w-full flex items-center gap-2 h-8 px-2.5 rounded text-[11px] font-medium text-white/90 transition-all cursor-pointer hover:brightness-110 ${labelDotClass(label.color)} ${
-                                                cardLabelIds.has(label.id) ? 'ring-2 ring-white/40' : 'opacity-60 hover:opacity-100'
-                                            }`}
-                                        >
-                                            {cardLabelIds.has(label.id) && (
-                                                <svg className="h-3 w-3 text-white shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                                                </svg>
+                                        <div key={label.id} className="flex items-center gap-1">
+                                            {editingLabelId === label.id ? (
+                                                <input
+                                                    value={editingLabelTitle}
+                                                    onChange={(e) => setEditingLabelTitle(e.target.value)}
+                                                    onBlur={() => { onUpdateLabelTitle(label.id, editingLabelTitle); setEditingLabelId(null) }}
+                                                    onKeyDown={(e) => { if (e.key === 'Enter') { onUpdateLabelTitle(label.id, editingLabelTitle); setEditingLabelId(null) } }}
+                                                    className={`flex-1 h-8 px-2.5 rounded text-[11px] font-medium text-white outline-none ${labelDotClass(label.color)}`}
+                                                    autoFocus
+                                                />
+                                            ) : (
+                                                <button
+                                                    onClick={() => onToggleLabel(label.id)}
+                                                    className={`flex-1 flex items-center gap-2 h-8 px-2.5 rounded text-[11px] font-medium text-white/90 transition-all cursor-pointer hover:brightness-110 ${labelDotClass(label.color)} ${
+                                                        cardLabelIds.has(label.id) ? 'ring-2 ring-white/40' : 'opacity-60 hover:opacity-100'
+                                                    }`}
+                                                >
+                                                    {cardLabelIds.has(label.id) && (
+                                                        <svg className="h-3 w-3 text-white shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                                                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                                                        </svg>
+                                                    )}
+                                                    <span className="truncate">{label.title}</span>
+                                                </button>
                                             )}
-                                            <span className="truncate">{label.title}</span>
-                                        </button>
+                                            <button
+                                                onClick={() => { setEditingLabelId(label.id); setEditingLabelTitle(label.title) }}
+                                                className="shrink-0 p-1 text-white/20 hover:text-white/60 transition-colors cursor-pointer"
+                                            >
+                                                <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                                </svg>
+                                            </button>
+                                        </div>
                                     ))}
                                 </div>
                             )}

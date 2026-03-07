@@ -36,7 +36,6 @@ export function KanbanColumn({
     const style = {
         transform: CSS.Transform.toString(transform),
         transition,
-        opacity: isDragging ? 0.3 : 1,
     }
     const [editing, setEditing] = useState(false)
     const [title, setTitle] = useState(column.title)
@@ -87,7 +86,11 @@ export function KanbanColumn({
         <div
             ref={setNodeRef}
             style={style}
-            className="shrink-0 w-72 rounded-xl bg-white/[0.03] border border-white/[0.06] flex flex-col max-h-[calc(100vh-8rem)] animate-fade-in-up"
+            className={`shrink-0 w-72 rounded-xl flex flex-col max-h-[calc(100vh-8rem)] animate-fade-in-up ${
+                isDragging
+                    ? 'bg-white/[0.02] border-2 border-dashed border-accent/30'
+                    : 'bg-white/[0.03] border border-white/[0.06]'
+            }`}
         >
             <div className="flex items-center justify-between px-3 py-2.5 cursor-grab active:cursor-grabbing group/header" {...attributes} {...listeners}>
                 <svg className="h-3 w-3 text-white/0 group-hover/header:text-white/15 shrink-0 mr-1 transition-colors" viewBox="0 0 24 24" fill="currentColor">
