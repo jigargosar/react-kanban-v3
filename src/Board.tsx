@@ -23,10 +23,9 @@ type BoardProps = {
     labelsForCard: (cardId: string) => Label[]
     onAddColumn: () => void
     onAddCard: (columnId: string, title: string) => void
-    onArchiveCard: (cardId: string) => void
     onArchiveColumn: (columnId: string) => void
-    onUpdateCardTitle: (cardId: string, title: string) => void
     onUpdateColumnTitle: (columnId: string, title: string) => void
+    onQuickEdit: (cardId: string, rect: DOMRect) => void
     onMoveCard: (cardId: string, columnId: string, position: string) => void
     onMoveCardLocally: (cardId: string, columnId: string) => void
     onMoveColumn: (columnId: string, position: string) => void
@@ -40,10 +39,9 @@ export function Board({
     labelsForCard,
     onAddColumn,
     onAddCard,
-    onArchiveCard,
     onArchiveColumn,
-    onUpdateCardTitle,
     onUpdateColumnTitle,
+    onQuickEdit,
     onMoveCard,
     onMoveCardLocally,
     onMoveColumn,
@@ -145,10 +143,9 @@ export function Board({
                             cards={cardsForColumn(column.id)}
                             labelsForCard={labelsForCard}
                             onAddCard={(title) => onAddCard(column.id, title)}
-                            onArchiveCard={onArchiveCard}
                             onArchiveColumn={() => onArchiveColumn(column.id)}
-                            onUpdateCardTitle={onUpdateCardTitle}
                             onUpdateColumnTitle={(title) => onUpdateColumnTitle(column.id, title)}
+                            onQuickEdit={onQuickEdit}
                             onCardClick={onCardClick}
                         />
                     ))}

@@ -4,6 +4,7 @@ import { generateKeyBetween } from 'fractional-indexing'
 import { Board } from './Board'
 import { Presence } from './Presence'
 import { CardDetailModal } from './CardDetailModal'
+import { QuickEditPopup } from './QuickEditPopup'
 import type { Column, Card, Label, CardLabel } from './types'
 
 type BoardViewProps = {
@@ -17,6 +18,7 @@ export function BoardView({ boardId }: BoardViewProps) {
     const [cardLabels, setCardLabels] = useState<CardLabel[]>([])
     const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading')
     const [selectedCardId, setSelectedCardId] = useState<string | null>(null)
+    const [quickEditState, setQuickEditState] = useState<{ cardId: string; rect: DOMRect } | null>(null)
 
     const selectedCard = selectedCardId ? cards.find((c) => c.id === selectedCardId) ?? null : null
 
@@ -301,16 +303,36 @@ export function BoardView({ boardId }: BoardViewProps) {
                     labelsForCard={labelsForCard}
                     onAddColumn={addColumn}
                     onAddCard={addCard}
-                    onArchiveCard={archiveCard}
                     onArchiveColumn={archiveColumn}
-                    onUpdateCardTitle={updateCardTitle}
                     onUpdateColumnTitle={updateColumnTitle}
+                    onQuickEdit={(cardId, rect) => setQuickEditState({ cardId, rect })}
                     onMoveCard={moveCard}
                     onMoveCardLocally={moveCardLocally}
                     onMoveColumn={moveColumn}
                     onCardClick={setSelectedCardId}
                 />
             </div>
+            {quickEditState && (() => {
+                const qCard = cards.find((c) => c.id === quickEditState.cardId)
+                if (!qCard) return null
+                const qLabelIds = new Set(cardLabels.filter((cl) => cl.card_id === qCard.id).map((cl) => cl.label_id))
+                return (
+                    <QuickEditPopup
+                        card={qCard}
+                        rect={quickEditState.rect}
+                        columns={columns}
+                        labels={labels}
+                        cardLabelIds={qLabelIds}
+                        onUpdateTitle={(title) => updateCardTitle(qCard.id, title)}
+                        onMoveToColumn={(columnId) => moveCardToColumn(qCard.id, columnId)}
+                        onToggleLabel={(labelId) => toggleCardLabel(qCard.id, labelId)}
+                        onCreateLabel={createLabel}
+                        onArchive={() => { archiveCard(qCard.id); setQuickEditState(null) }}
+                        onOpenDetail={() => { setQuickEditState(null); setSelectedCardId(qCard.id) }}
+                        onClose={() => setQuickEditState(null)}
+                    />
+                )
+            })()}
             {selectedCard && (
                 <CardDetailModal
                     card={selectedCard}

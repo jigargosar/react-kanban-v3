@@ -9,10 +9,9 @@ type KanbanColumnProps = {
     cards: Card[]
     labelsForCard: (cardId: string) => Label[]
     onAddCard: (title: string) => void
-    onArchiveCard: (cardId: string) => void
     onArchiveColumn: () => void
-    onUpdateCardTitle: (cardId: string, title: string) => void
     onUpdateColumnTitle: (title: string) => void
+    onQuickEdit: (cardId: string, rect: DOMRect) => void
     onCardClick: (cardId: string) => void
 }
 
@@ -21,10 +20,9 @@ export function KanbanColumn({
     cards,
     labelsForCard,
     onAddCard,
-    onArchiveCard,
     onArchiveColumn,
-    onUpdateCardTitle,
     onUpdateColumnTitle,
+    onQuickEdit,
     onCardClick,
 }: KanbanColumnProps) {
     const {
@@ -120,8 +118,7 @@ export function KanbanColumn({
                             key={card.id}
                             card={card}
                             labels={labelsForCard(card.id)}
-                            onArchive={() => onArchiveCard(card.id)}
-                            onUpdateTitle={(t) => onUpdateCardTitle(card.id, t)}
+                            onQuickEdit={(rect) => onQuickEdit(card.id, rect)}
                             onClick={() => onCardClick(card.id)}
                         />
                     ))}
