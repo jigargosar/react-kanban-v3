@@ -40,36 +40,39 @@ export function KanbanColumn({
     return (
         <div
             ref={setNodeRef}
-            className="shrink-0 w-72 rounded-xl bg-gray-900 flex flex-col max-h-[calc(100vh-8rem)]"
+            className="shrink-0 w-72 rounded-xl bg-white/[0.03] border border-white/[0.06] flex flex-col max-h-[calc(100vh-8rem)] animate-fade-in-up"
         >
-            <div className="flex items-center justify-between p-3">
+            <div className="flex items-center justify-between px-3 py-2.5">
                 {editing ? (
                     <input
                         value={title}
                         onChange={(e) => setTitle(e.target.value)}
                         onBlur={commitTitle}
                         onKeyDown={(e) => e.key === 'Enter' && commitTitle()}
-                        className="flex-1 bg-transparent text-white font-semibold text-sm outline-none border-b border-blue-500"
+                        className="flex-1 bg-transparent text-white text-sm font-semibold outline-none border-b border-accent/50"
                         autoFocus
                     />
                 ) : (
-                    <h2
-                        className="font-semibold text-sm text-gray-300 cursor-pointer"
-                        onDoubleClick={() => setEditing(true)}
-                    >
-                        {column.title}
-                        <span className="ml-2 text-gray-600">{cards.length}</span>
-                    </h2>
+                    <div className="flex items-center gap-2" onDoubleClick={() => setEditing(true)}>
+                        <h2 className="text-[13px] font-semibold text-white/70 cursor-pointer uppercase tracking-wider">
+                            {column.title}
+                        </h2>
+                        <span className="text-[11px] font-medium text-white/20 bg-white/[0.05] rounded-full px-1.5 py-0.5 min-w-[20px] text-center">
+                            {cards.length}
+                        </span>
+                    </div>
                 )}
                 <button
                     onClick={onArchiveColumn}
-                    className="text-gray-600 hover:text-red-400 text-xs px-1 cursor-pointer"
+                    className="text-white/10 hover:text-red-400 transition-colors cursor-pointer p-1 rounded hover:bg-white/[0.05]"
                     title="Archive column"
                 >
-                    &times;
+                    <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
                 </button>
             </div>
-            <div className="flex-1 overflow-y-auto px-3 pb-1 space-y-2">
+            <div className="flex-1 overflow-y-auto thin-scrollbar px-2 pb-1 space-y-1.5">
                 <SortableContext items={cards.map((c) => c.id)} strategy={verticalListSortingStrategy}>
                     {cards.map((card) => (
                         <SortableCard
@@ -83,7 +86,7 @@ export function KanbanColumn({
             </div>
             <button
                 onClick={onAddCard}
-                className="p-3 text-sm text-gray-500 hover:text-white hover:bg-gray-800 rounded-b-xl transition-colors cursor-pointer"
+                className="px-3 py-2.5 text-[13px] text-white/15 hover:text-white/40 hover:bg-white/[0.03] rounded-b-xl transition-all cursor-pointer"
             >
                 + Add Card
             </button>

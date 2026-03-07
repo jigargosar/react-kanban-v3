@@ -142,7 +142,7 @@ export function Board({ columns, cards, setColumns, setCards }: BoardProps) {
             onDragOver={handleDragOver}
             onDragEnd={handleDragEnd}
         >
-            <div className="flex gap-4 items-start overflow-x-auto pb-4">
+            <div className="flex gap-4 items-start h-full overflow-x-auto hide-scrollbar">
                 <SortableContext items={columns.map((c) => c.id)} strategy={horizontalListSortingStrategy}>
                     {columns.map((column) => (
                         <KanbanColumn
@@ -159,7 +159,7 @@ export function Board({ columns, cards, setColumns, setCards }: BoardProps) {
                 </SortableContext>
                 <button
                     onClick={addColumn}
-                    className="shrink-0 w-72 rounded-xl bg-gray-900 p-3 text-gray-400 hover:bg-gray-800 hover:text-white transition-colors cursor-pointer"
+                    className="shrink-0 w-72 rounded-xl border border-dashed border-white/[0.06] p-4 text-sm text-white/20 hover:border-white/[0.12] hover:text-white/40 hover:bg-white/[0.02] transition-all cursor-pointer"
                 >
                     + Add Column
                 </button>

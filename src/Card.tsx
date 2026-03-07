@@ -26,23 +26,27 @@ export function KanbanCard({ card, isOverlay, onArchive, onUpdateTitle }: Kanban
 
     return (
         <div
-            className={`rounded-lg bg-gray-800 p-3 text-sm text-white shadow-sm group ${
-                isOverlay ? 'rotate-3 shadow-lg opacity-90' : ''
+            className={`rounded-lg bg-surface-raised border text-[13px] text-white/80 group transition-all ${
+                isOverlay
+                    ? 'rotate-2 shadow-[0_8px_30px_rgba(0,0,0,0.4)] border-accent/30 scale-105'
+                    : 'border-transparent hover:border-white/[0.08] hover:bg-white/[0.06]'
             }`}
         >
             {editing ? (
-                <input
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                    onBlur={commitTitle}
-                    onKeyDown={(e) => e.key === 'Enter' && commitTitle()}
-                    className="w-full bg-transparent outline-none border-b border-blue-500"
-                    autoFocus
-                />
+                <div className="p-2.5">
+                    <input
+                        value={title}
+                        onChange={(e) => setTitle(e.target.value)}
+                        onBlur={commitTitle}
+                        onKeyDown={(e) => e.key === 'Enter' && commitTitle()}
+                        className="w-full bg-transparent outline-none border-b border-accent/40 text-white pb-0.5"
+                        autoFocus
+                    />
+                </div>
             ) : (
-                <div className="flex items-start justify-between">
+                <div className="flex items-start justify-between p-2.5">
                     <span
-                        className="flex-1 cursor-pointer"
+                        className="flex-1 cursor-pointer leading-relaxed"
                         onDoubleClick={() => setEditing(true)}
                     >
                         {card.title}
@@ -50,10 +54,12 @@ export function KanbanCard({ card, isOverlay, onArchive, onUpdateTitle }: Kanban
                     {onArchive && (
                         <button
                             onClick={onArchive}
-                            className="text-gray-600 hover:text-red-400 text-xs opacity-0 group-hover:opacity-100 transition-opacity ml-2 cursor-pointer"
+                            className="text-white/0 group-hover:text-white/20 hover:!text-red-400 transition-all ml-2 mt-0.5 cursor-pointer p-0.5 rounded"
                             title="Archive"
                         >
-                            &times;
+                            <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
                         </button>
                     )}
                 </div>
@@ -76,7 +82,7 @@ export function SortableCard({ card, onArchive, onUpdateTitle }: SortableCardPro
     const style = {
         transform: CSS.Transform.toString(transform),
         transition,
-        opacity: isDragging ? 0.3 : 1,
+        opacity: isDragging ? 0.2 : 1,
     }
 
     return (
