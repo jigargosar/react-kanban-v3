@@ -13,6 +13,8 @@ Task Board
 
 # InProgress
 
+1. Keyboard shortcuts (n=new card, e=edit, l=labels, Esc=close)
+
 # Done
 
 1. Labels: Trello-style colored bars, default labels seeded per board
@@ -23,7 +25,9 @@ Task Board
 2. RLS policies tied to auth (replace open anon policies)
 3. Board sharing and invite links
 4. Archive view (browse and restore archived cards/columns)
-5. Keyboard shortcuts (n=new card, e=edit, l=labels, Esc=close)
 6. Seed clean demo board with realistic content
 7. Deploy to Netlify + README with screenshot and live link
 8. UI: overhaul
+9. Checklists/subtasks with progress bar on card face
+10. Board backgrounds/themes
+11. Markdown in descriptions/comments
