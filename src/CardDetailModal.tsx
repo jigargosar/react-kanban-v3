@@ -14,7 +14,7 @@ type CardDetailModalProps = {
     onUpdateCover: (color: string | null) => void
     onMoveToColumn: (columnId: string) => void
     onToggleLabel: (labelId: string) => void
-    onCreateLabel: (title: string, color: string) => string
+    onCreateLabel: (title: string, color: string) => void
     onAddComment: (content: string) => void
     onArchive: () => void
     onClose: () => void
@@ -81,8 +81,7 @@ export function CardDetailModal({
     const createLabel = () => {
         const trimmed = newLabelTitle.trim()
         if (!trimmed) return
-        const labelId = onCreateLabel(trimmed, newLabelColor)
-        onToggleLabel(labelId)
+        onCreateLabel(trimmed, newLabelColor)
         setNewLabelTitle('')
     }
 

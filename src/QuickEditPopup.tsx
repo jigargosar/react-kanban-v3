@@ -11,7 +11,7 @@ type QuickEditPopupProps = {
     onUpdateTitle: (title: string) => void
     onMoveToColumn: (columnId: string) => void
     onToggleLabel: (labelId: string) => void
-    onCreateLabel: (title: string, color: string) => string
+    onCreateLabel: (title: string, color: string) => void
     onArchive: () => void
     onOpenDetail: () => void
     onClose: () => void
@@ -62,8 +62,7 @@ export function QuickEditPopup({
     const createLabel = () => {
         const trimmed = newLabelTitle.trim()
         if (!trimmed) return
-        const labelId = onCreateLabel(trimmed, newLabelColor)
-        onToggleLabel(labelId)
+        onCreateLabel(trimmed, newLabelColor)
         setNewLabelTitle('')
     }
 

@@ -25,9 +25,10 @@ Copy to .env at project root:
 
   boards      (id, title, position, archived)
   columns     (id, board_id, title, position, archived)
-  cards       (id, column_id, title, description, position, archived, due_date)
+  cards       (id, column_id, title, description, position, archived, due_date, cover_color)
   labels      (id, board_id, title, color, position)
   card_labels (card_id, label_id) -- junction table
+  comments    (id, card_id, author_name, content, created_at)
 
 All tables: RLS enabled, open anon policy, realtime enabled.
 
@@ -36,6 +37,7 @@ Migrations (in supabase/migrations/):
   20260307000000_kanban_tables.sql      -- columns + cards
   20260307100000_boards_table.sql       -- boards + board_id on columns
   20260307110000_labels_and_due_dates.sql -- labels, card_labels, due_date
+  20260307120000_comments_and_cover.sql -- comments table, cover_color on cards
 
 # Supabase CLI
 

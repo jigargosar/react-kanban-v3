@@ -274,14 +274,18 @@ export function BoardView({ boardId }: BoardViewProps) {
             .then(({ error }) => { if (error) console.error(error) })
     }
 
-    const createLabel = (title: string, color: string) => {
+    const createAndAssignLabel = (cardId: string, title: string, color: string) => {
         const lastPosition = labels[labels.length - 1]?.position ?? null
         const position = generateKeyBetween(lastPosition, null)
         const id = crypto.randomUUID()
         setLabels((prev) => [...prev, { id, board_id: boardId, title, color, position }])
+        setCardLabels((prev) => [...prev, { card_id: cardId, label_id: id }])
         supabase.from('labels').insert({ id, board_id: boardId, title, color, position })
-            .then(({ error }) => { if (error) console.error(error) })
-        return id
+            .then(({ error }) => {
+                if (error) { console.error(error); return }
+                supabase.from('card_labels').insert({ card_id: cardId, label_id: id })
+                    .then(({ error }) => { if (error) console.error(error) })
+            })
     }
 
 
@@ -419,7 +423,7 @@ export function BoardView({ boardId }: BoardViewProps) {
                         onUpdateTitle={(title) => updateCardTitle(qCard.id, title)}
                         onMoveToColumn={(columnId) => moveCardToColumn(qCard.id, columnId)}
                         onToggleLabel={(labelId) => toggleCardLabel(qCard.id, labelId)}
-                        onCreateLabel={createLabel}
+                        onCreateLabel={(title, color) => createAndAssignLabel(qCard.id, title, color)}
                         onArchive={() => { archiveCard(qCard.id); setQuickEditState(null) }}
                         onOpenDetail={() => { setQuickEditState(null); setSelectedCardId(qCard.id) }}
                         onClose={() => setQuickEditState(null)}
@@ -439,7 +443,7 @@ export function BoardView({ boardId }: BoardViewProps) {
                     onUpdateCover={(color) => updateCardCover(selectedCard.id, color)}
                     onMoveToColumn={(columnId) => moveCardToColumn(selectedCard.id, columnId)}
                     onToggleLabel={(labelId) => toggleCardLabel(selectedCard.id, labelId)}
-                    onCreateLabel={createLabel}
+                    onCreateLabel={(title, color) => createAndAssignLabel(selectedCard.id, title, color)}
                     onAddComment={(content) => addComment(selectedCard.id, content)}
                     onArchive={() => archiveCard(selectedCard.id)}
                     onClose={() => setSelectedCardId(null)}
