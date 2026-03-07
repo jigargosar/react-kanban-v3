@@ -26,3 +26,4 @@ Task Board
 5. Keyboard shortcuts (n=new card, e=edit, l=labels, Esc=close)
 6. Seed clean demo board with realistic content
 7. Deploy to Netlify + README with screenshot and live link
+8. Label pills on cards: show label name on hover
