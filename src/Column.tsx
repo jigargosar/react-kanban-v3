@@ -1,13 +1,13 @@
 import { useDroppable } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { SortableCard } from './Card'
 import type { Card, Column } from './types'
 
 type KanbanColumnProps = {
     column: Column
     cards: Card[]
-    onAddCard: () => void
+    onAddCard: (title: string) => void
     onArchiveCard: (cardId: string) => void
     onArchiveColumn: () => void
     onUpdateCardTitle: (cardId: string, title: string) => void
@@ -26,6 +26,9 @@ export function KanbanColumn({
     const { setNodeRef } = useDroppable({ id: column.id })
     const [editing, setEditing] = useState(false)
     const [title, setTitle] = useState(column.title)
+    const [adding, setAdding] = useState(false)
+    const [newCardTitle, setNewCardTitle] = useState('')
+    const addInputRef = useRef<HTMLInputElement>(null)
 
     const commitTitle = () => {
         setEditing(false)
@@ -35,6 +38,22 @@ export function KanbanColumn({
         } else {
             setTitle(column.title)
         }
+    }
+
+    const submitCard = () => {
+        const trimmed = newCardTitle.trim()
+        if (trimmed) {
+            onAddCard(trimmed)
+            setNewCardTitle('')
+        } else {
+            setAdding(false)
+            setNewCardTitle('')
+        }
+    }
+
+    const startAdding = () => {
+        setAdding(true)
+        setNewCardTitle('')
     }
 
     return (
@@ -83,13 +102,43 @@ export function KanbanColumn({
                         />
                     ))}
                 </SortableContext>
+                {adding && (
+                    <div className="rounded-lg bg-surface-raised border border-accent/20 p-2.5 animate-fade-in-up">
+                        <input
+                            ref={addInputRef}
+                            value={newCardTitle}
+                            onChange={(e) => setNewCardTitle(e.target.value)}
+                            onBlur={submitCard}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                    e.preventDefault()
+                                    submitCard()
+                                    setTimeout(() => addInputRef.current?.focus(), 0)
+                                }
+                                if (e.key === 'Escape') {
+                                    setAdding(false)
+                                    setNewCardTitle('')
+                                }
+                            }}
+                            placeholder="Card title..."
+                            className="w-full bg-transparent text-[13px] text-white outline-none placeholder:text-white/20"
+                            autoFocus
+                        />
+                    </div>
+                )}
             </div>
-            <button
-                onClick={onAddCard}
-                className="px-3 py-2.5 text-[13px] text-white/15 hover:text-white/40 hover:bg-white/[0.03] rounded-b-xl transition-all cursor-pointer"
-            >
-                + Add Card
-            </button>
+            {!adding ? (
+                <button
+                    onClick={startAdding}
+                    className="px-3 py-2.5 text-[13px] text-white/15 hover:text-white/40 hover:bg-white/[0.03] rounded-b-xl transition-all cursor-pointer"
+                >
+                    + Add Card
+                </button>
+            ) : (
+                <div className="px-3 py-2 text-[11px] text-white/20 rounded-b-xl">
+                    Enter to add, empty to stop
+                </div>
+            )}
         </div>
     )
 }

@@ -43,12 +43,11 @@ export function Board({ columns, cards, setColumns, setCards }: BoardProps) {
         supabase.from('columns').insert({ id, title, position }).then(({ error }) => { if (error) console.error(error) })
     }
 
-    const addCard = (columnId: string) => {
+    const addCard = (columnId: string, title: string) => {
         const columnCards = cardsForColumn(columnId)
         const lastPosition = columnCards[columnCards.length - 1]?.position ?? null
         const position = generateKeyBetween(lastPosition, null)
         const id = crypto.randomUUID()
-        const title = `Card ${cards.length + 1}`
 
         setCards((prev) => [...prev, { id, column_id: columnId, title, description: '', position, archived: false }])
         supabase.from('cards').insert({ id, column_id: columnId, title, position }).then(({ error }) => { if (error) console.error(error) })
@@ -149,7 +148,7 @@ export function Board({ columns, cards, setColumns, setCards }: BoardProps) {
                             key={column.id}
                             column={column}
                             cards={cardsForColumn(column.id)}
-                            onAddCard={() => addCard(column.id)}
+                            onAddCard={(title) => addCard(column.id, title)}
                             onArchiveCard={archiveCard}
                             onArchiveColumn={() => archiveColumn(column.id)}
                             onUpdateCardTitle={updateCardTitle}
