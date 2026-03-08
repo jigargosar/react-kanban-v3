@@ -11,6 +11,14 @@ Task Board
 
 # InProgress
 
+1. Fix due date timezone bug (UTC midnight shows wrong day in negative UTC offsets, false overdue)
+2. Fix Escape key propagation in CardDetailModal/QuickEditPopup (closes modal when editing sub-inputs)
+3. Fix comments loading race condition (switching cards rapidly shows wrong/no comments)
+4. Seed default labels for initial auto-created board (first-time users get empty label picker)
+5. Clean up checklist_items/comments state on card archive
+6. Clean up card_labels/comments/checklist_items state on column archive
+7. Add missing DB indexes (cards.column_id, card_labels.label_id, checklist_items.card_id)
+
 # Review
 
 1. Label renaming (edit pencil on label bars)
@@ -22,7 +30,11 @@ Task Board
 
 # Done
 
-1. Labels: Trello-style colored bars, default labels seeded per board
+1. Fix mutation queue crash (try/catch so failed mutations don't freeze queue)
+2. Fix column drag position (use active column's neighbors in reordered array)
+3. Scope realtime subscriptions (guard cards/card_labels/comments/checklist_items against other boards)
+4. Remove unused @liveblocks dependencies
+5. Labels: Trello-style colored bars, default labels seeded per board
 
 # Backlog
 
