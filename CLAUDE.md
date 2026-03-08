@@ -12,6 +12,10 @@ pnpm supabase migration new <name>   # Create migration
 pnpm supabase migration up --linked  # Apply pending migrations to remote
 ```
 
+## Environment
+
+Requires `.env` with `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`.
+
 ## Architecture
 
 Single-page Kanban board with real-time sync via Supabase Postgres changes.
@@ -45,9 +49,18 @@ Global shortcuts in BoardView (skipped when typing in inputs or when modal/popup
 - `Esc` — close modal/popup
 - `?` — toggle help overlay
 
+## Styling
+
+Custom theme in `src/global.css` via Tailwind v4 `@theme`: `surface`, `surface-raised`, `accent`, `accent-dim`, `border-subtle`. Custom utility classes: `dot-grid`, `thin-scrollbar`, `hide-scrollbar`, `animate-fade-in-up`, `animate-shimmer`, `animate-quick-edit-in`, `animate-pulse-ring`.
+
 ## Principles
 
 - Do not base decisions on assumptions about app scope (e.g., "single-user" or "portfolio project"). Treat all code as production-grade.
+
+## Workflow
+
+- Never move Board.md items to Done without explicit user confirmation.
+- Always confirm before editing Board.md.
 
 ## Patterns
 
