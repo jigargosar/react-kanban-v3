@@ -31,6 +31,7 @@ type BoardProps = {
     onMoveCard: (cardId: string, columnId: string, position: string) => void
     onMoveCardLocally: (cardId: string, columnId: string) => void
     onMoveColumn: (columnId: string, position: string) => void
+    onMoveColumnLocally: (activeId: string, overId: string) => void
     onCardClick: (cardId: string) => void
 }
 
@@ -47,6 +48,7 @@ export function Board({
     onMoveCard,
     onMoveCardLocally,
     onMoveColumn,
+    onMoveColumnLocally,
     onCardClick,
 }: BoardProps) {
     const [activeCard, setActiveCard] = useState<Card | null>(null)
@@ -75,7 +77,13 @@ export function Board({
     }
 
     const handleDragOver = (event: DragOverEvent) => {
-        if (activeColumn) return
+        if (activeColumn) {
+            const overId = event.over?.id as string | undefined
+            if (overId && overId !== activeColumn.id && columnIds.has(overId)) {
+                onMoveColumnLocally(activeColumn.id, overId)
+            }
+            return
+        }
 
         const { active, over } = event
         if (!over) return

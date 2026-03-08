@@ -330,6 +330,18 @@ export function BoardView({ boardId }: BoardViewProps) {
         setCards((prev) => prev.map((c) => c.id === cardId ? { ...c, column_id: columnId } : c))
     }
 
+    const moveColumnLocally = (activeId: string, overId: string) => {
+        setColumns((prev) => {
+            const activeIndex = prev.findIndex((c) => c.id === activeId)
+            const overIndex = prev.findIndex((c) => c.id === overId)
+            if (activeIndex === -1 || overIndex === -1 || activeIndex === overIndex) return prev
+            const next = [...prev]
+            const [moved] = next.splice(activeIndex, 1)
+            next.splice(overIndex, 0, moved)
+            return next
+        })
+    }
+
     const moveColumn = (columnId: string, position: string) => {
         setColumns((prev) =>
             prev.map((c) => c.id === columnId ? { ...c, position } : c)
@@ -474,6 +486,7 @@ export function BoardView({ boardId }: BoardViewProps) {
                     onMoveCard={moveCard}
                     onMoveCardLocally={moveCardLocally}
                     onMoveColumn={moveColumn}
+                    onMoveColumnLocally={moveColumnLocally}
                     onCardClick={setSelectedCardId}
                 />
             </div>

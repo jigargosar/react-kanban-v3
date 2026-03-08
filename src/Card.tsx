@@ -67,6 +67,7 @@ export function KanbanCard({ card, labels = [], isOverlay, onQuickEdit, onClick 
                         {labels.map((label) => (
                             <span
                                 key={label.id}
+                                title={label.title || label.color}
                                 className={`h-2 w-8 rounded-sm ${labelDotClass(label.color)}`}
                             />
                         ))}
