@@ -22,6 +22,8 @@ export function BoardView({ boardId }: BoardViewProps) {
     const [selectedCardId, setSelectedCardId] = useState<string | null>(null)
     const [quickEditState, setQuickEditState] = useState<{ cardId: string; rect: DOMRect } | null>(null)
     const [searchQuery, setSearchQuery] = useState('')
+    const [showHelp, setShowHelp] = useState(false)
+    const [quickEditShowLabels, setQuickEditShowLabels] = useState(false)
 
     const selectedCard = selectedCardId ? cards.find((c) => c.id === selectedCardId) ?? null : null
 
@@ -175,6 +177,50 @@ export function BoardView({ boardId }: BoardViewProps) {
 
         return () => { channel.unsubscribe() }
     }, [boardId])
+
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            const tag = (document.activeElement as HTMLElement)?.tagName
+            if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return
+            if (selectedCardId || quickEditState) return
+
+            switch (e.key) {
+                case 'n': {
+                    e.preventDefault()
+                    const addBtn = document.querySelector('[data-add-card-btn]') as HTMLElement | null
+                    addBtn?.click()
+                    break
+                }
+                case 'e': {
+                    e.preventDefault()
+                    const hoveredEl = document.querySelector('[data-card-id]:hover') as HTMLElement | null
+                    if (hoveredEl) {
+                        const cardId = hoveredEl.dataset.cardId!
+                        setQuickEditState({ cardId, rect: hoveredEl.getBoundingClientRect() })
+                        setQuickEditShowLabels(false)
+                    }
+                    break
+                }
+                case 'l': {
+                    e.preventDefault()
+                    const hoveredEl = document.querySelector('[data-card-id]:hover') as HTMLElement | null
+                    if (hoveredEl) {
+                        const cardId = hoveredEl.dataset.cardId!
+                        setQuickEditState({ cardId, rect: hoveredEl.getBoundingClientRect() })
+                        setQuickEditShowLabels(true)
+                    }
+                    break
+                }
+                case '?': {
+                    e.preventDefault()
+                    setShowHelp((prev) => !prev)
+                    break
+                }
+            }
+        }
+        document.addEventListener('keydown', handleKeyDown)
+        return () => document.removeEventListener('keydown', handleKeyDown)
+    }, [selectedCardId, quickEditState])
 
     const cardsForColumn = useCallback((columnId: string) =>
         cards
@@ -442,16 +488,44 @@ export function BoardView({ boardId }: BoardViewProps) {
                         columns={columns}
                         labels={labels}
                         cardLabelIds={qLabelIds}
+                        initialShowLabels={quickEditShowLabels}
                         onUpdateTitle={(title) => updateCardTitle(qCard.id, title)}
                         onMoveToColumn={(columnId) => moveCardToColumn(qCard.id, columnId)}
                         onToggleLabel={(labelId) => toggleCardLabel(qCard.id, labelId)}
                         onUpdateLabelTitle={updateLabelTitle}
                         onArchive={() => { archiveCard(qCard.id); setQuickEditState(null) }}
-                        onOpenDetail={() => { setQuickEditState(null); setSelectedCardId(qCard.id) }}
-                        onClose={() => setQuickEditState(null)}
+                        onOpenDetail={() => { setQuickEditState(null); setQuickEditShowLabels(false); setSelectedCardId(qCard.id) }}
+                        onClose={() => { setQuickEditState(null); setQuickEditShowLabels(false) }}
                     />
                 )
             })()}
+            {showHelp && (
+                <div
+                    onClick={() => setShowHelp(false)}
+                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fade-in-up"
+                >
+                    <div
+                        onClick={(e) => e.stopPropagation()}
+                        className="bg-surface border border-white/[0.08] rounded-xl shadow-2xl p-6 w-72"
+                    >
+                        <h3 className="text-sm font-semibold text-white/80 mb-4">Keyboard Shortcuts</h3>
+                        <div className="space-y-2.5">
+                            {[
+                                ['N', 'New card'],
+                                ['E', 'Edit hovered card'],
+                                ['L', 'Labels on hovered card'],
+                                ['Esc', 'Close modal / popup'],
+                                ['?', 'Toggle this help'],
+                            ].map(([key, desc]) => (
+                                <div key={key} className="flex items-center justify-between">
+                                    <span className="text-[12px] text-white/50">{desc}</span>
+                                    <kbd className="px-2 py-0.5 bg-white/[0.06] border border-white/[0.1] rounded text-[11px] font-mono text-white/60">{key}</kbd>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            )}
             {selectedCard && (
                 <CardDetailModal
                     card={selectedCard}

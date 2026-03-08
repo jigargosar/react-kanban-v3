@@ -15,6 +15,7 @@ type QuickEditPopupProps = {
     onArchive: () => void
     onOpenDetail: () => void
     onClose: () => void
+    initialShowLabels?: boolean
 }
 
 export function QuickEditPopup({
@@ -30,9 +31,10 @@ export function QuickEditPopup({
     onArchive,
     onOpenDetail,
     onClose,
+    initialShowLabels = false,
 }: QuickEditPopupProps) {
     const [title, setTitle] = useState(card.title)
-    const [showLabels, setShowLabels] = useState(false)
+    const [showLabels, setShowLabels] = useState(initialShowLabels)
     const [editingLabelId, setEditingLabelId] = useState<string | null>(null)
     const [editingLabelTitle, setEditingLabelTitle] = useState('')
     const overlayRef = useRef<HTMLDivElement>(null)

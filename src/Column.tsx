@@ -200,6 +200,7 @@ export function KanbanColumn({
             </div>
             {!adding ? (
                 <button
+                    data-add-card-btn
                     onClick={startAdding}
                     className="px-3 py-2.5 text-[13px] text-white/15 hover:text-white/40 hover:bg-white/[0.03] rounded-b-xl transition-all cursor-pointer"
                 >
