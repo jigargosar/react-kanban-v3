@@ -56,7 +56,7 @@ export function App() {
             })
             .subscribe()
 
-        return () => { channel.unsubscribe() }
+        return () => { channel.unsubscribe().catch(console.error) }
     }, [])
 
     const addBoard = () => {
