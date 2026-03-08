@@ -20,7 +20,7 @@ Single-page Kanban board with real-time sync via Supabase Postgres changes.
 
 **Key boundaries:**
 - App.tsx owns board-level state and sidebar. Seeds default labels when creating a board.
-- BoardView.tsx owns all state within a board (columns, cards, labels, card_labels, comments). Every DB write goes through `enqueue()` from mutationQueue.ts. Remounts on board switch via `key={boardId}`.
+- BoardView.tsx owns all state within a board (columns, cards, labels, card_labels, comments, checklist_items). Every DB write goes through `enqueue()` from mutationQueue.ts. Remounts on board switch via `key={boardId}`.
 - Board.tsx is pure DnD orchestration — no data fetching or mutations.
 - CardDetailModal.tsx and QuickEditPopup.tsx are editing surfaces that call back to BoardView mutations via props.
 
@@ -32,7 +32,7 @@ Single-page Kanban board with real-time sync via Supabase Postgres changes.
 
 ## Database
 
-Supabase project `hsuiztvjcylwtljrtyik`. Tables: boards, columns, cards, labels, card_labels, comments. All have RLS enabled with open anon policies. Realtime enabled on all tables. Migrations in `supabase/migrations/`.
+Supabase project `hsuiztvjcylwtljrtyik`. Tables: boards, columns, cards, labels, card_labels, comments, checklist_items. All have RLS enabled with open anon policies. Realtime enabled on all tables. Migrations in `supabase/migrations/`.
 
 Each board gets 6 default colored labels (seeded via migration for existing boards, via App.tsx `addBoard` for new boards).
 

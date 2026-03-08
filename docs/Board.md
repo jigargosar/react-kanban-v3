@@ -6,13 +6,10 @@ Task Board
 
 # Ready [RTI]
 
-1. Checklists/subtasks with progress bar on card face
-4. Seed clean demo board with realistic content
-5. Deploy to Netlify + README with screenshot and live link
+1. Seed clean demo board with realistic content
+2. Deploy to Netlify + README with screenshot and live link
 
 # InProgress
-
-1. Column drag: overlay only shows title, needs full column preview
 
 # Review
 
@@ -20,6 +17,8 @@ Task Board
 2. Keyboard shortcuts (n=new card, e=edit, l=labels, ?=help)
 3. Mutation queue for Supabase writes
 4. Label pills on cards: show label name on hover
+5. Column drag: full column overlay, local reorder, translucent preview
+6. Checklists/subtasks with progress bar on card face
 
 # Done
 
