@@ -184,13 +184,29 @@ export function Board({
                 {activeCard ? (
                     <KanbanCard card={activeCard} labels={labelsForCard(activeCard.id)} isOverlay />
                 ) : null}
-                {activeColumn ? (
-                    <div className="w-72 rounded-xl bg-white/[0.06] border border-accent/30 p-3 shadow-[0_8px_30px_rgba(0,0,0,0.4)] rotate-1">
-                        <span className="text-[13px] font-semibold text-white/60 uppercase tracking-wider">
-                            {activeColumn.title}
-                        </span>
-                    </div>
-                ) : null}
+                {activeColumn ? (() => {
+                    const columnCards = cardsForColumn(activeColumn.id)
+                    return (
+                        <div className="w-72 rounded-xl bg-white/[0.035] border border-accent/30 shadow-[0_8px_30px_rgba(0,0,0,0.4)] rotate-1 opacity-40 max-h-[calc(100vh-8rem)] flex flex-col overflow-hidden">
+                            <div className="flex items-center gap-2 px-3 py-2.5">
+                                <h2 className="text-[13px] font-medium text-white/50 truncate">
+                                    {activeColumn.title}
+                                </h2>
+                                <span className="text-[10px] font-medium text-white/25 bg-white/[0.06] rounded-full px-1.5 py-0.5 min-w-[18px] text-center shrink-0">
+                                    {columnCards.length}
+                                </span>
+                            </div>
+                            <div className="px-2 pb-1 space-y-1.5 overflow-hidden">
+                                {columnCards.map((card) => (
+                                    <KanbanCard key={card.id} card={card} labels={labelsForCard(card.id)} />
+                                ))}
+                            </div>
+                            <div className="px-3 py-2.5 text-[13px] text-white/15">
+                                + Add Card
+                            </div>
+                        </div>
+                    )
+                })() : null}
             </DragOverlay>
         </DndContext>
     )

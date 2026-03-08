@@ -88,7 +88,7 @@ export function KanbanColumn({
             style={style}
             className={`shrink-0 w-72 rounded-xl flex flex-col max-h-[calc(100vh-8rem)] animate-fade-in-up ${
                 isDragging
-                    ? 'bg-white/[0.02] border-2 border-dashed border-accent/30'
+                    ? 'bg-white/[0.02] border border-white/[0.04] [&>*]:invisible'
                     : 'bg-white/[0.035] border border-white/[0.07]'
             }`}
         >
