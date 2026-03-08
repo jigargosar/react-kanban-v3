@@ -10,10 +10,9 @@ Task Board
 2. Label pills on cards: show label name on hover
 3. Column drag: dashed accent placeholder showing drop position
 4. Label renaming (edit pencil on label bars)
+5. Keyboard shortcuts (n=new card, e=edit, l=labels, ?=help)
 
 # InProgress
-
-1. Keyboard shortcuts (n=new card, e=edit, l=labels, Esc=close)
 
 # Done
 

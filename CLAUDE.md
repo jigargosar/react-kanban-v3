@@ -36,6 +36,15 @@ Supabase project `hsuiztvjcylwtljrtyik`. Tables: boards, columns, cards, labels,
 
 Each board gets 6 default colored labels (seeded via migration for existing boards, via App.tsx `addBoard` for new boards).
 
+## Keyboard Shortcuts
+
+Global shortcuts in BoardView (skipped when typing in inputs or when modal/popup is open):
+- `N` — new card in first column
+- `E` — quick edit hovered card
+- `L` — quick edit hovered card with labels open
+- `Esc` — close modal/popup
+- `?` — toggle help overlay
+
 ## Patterns
 
 - Client-generated UUIDs for optimistic inserts (`crypto.randomUUID()`)
