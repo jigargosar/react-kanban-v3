@@ -12,14 +12,14 @@ Task Board
 
 # InProgress
 
-1. Column drag: dashed accent placeholder showing drop position
-2. Mutation queue for Supabase writes
-3. Label pills on cards: show label name on hover
+1. Column drag: overlay only shows title, needs full column preview
 
 # Review
 
 1. Label renaming (edit pencil on label bars)
 2. Keyboard shortcuts (n=new card, e=edit, l=labels, ?=help)
+3. Mutation queue for Supabase writes
+4. Label pills on cards: show label name on hover
 
 # Done
 
