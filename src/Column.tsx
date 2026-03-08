@@ -2,12 +2,13 @@ import { SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-
 import { CSS } from '@dnd-kit/utilities'
 import { useEffect, useRef, useState } from 'react'
 import { SortableCard } from './Card'
-import type { Card, Column, Label } from './types'
+import type { Card, ChecklistItem, Column, Label } from './types'
 
 type KanbanColumnProps = {
     column: Column
     cards: Card[]
     labelsForCard: (cardId: string) => Label[]
+    checklistForCard: (cardId: string) => ChecklistItem[]
     onAddCard: (title: string) => void
     onArchiveColumn: () => void
     onUpdateColumnTitle: (title: string) => void
@@ -19,6 +20,7 @@ export function KanbanColumn({
     column,
     cards,
     labelsForCard,
+    checklistForCard,
     onAddCard,
     onArchiveColumn,
     onUpdateColumnTitle,
@@ -168,6 +170,7 @@ export function KanbanColumn({
                             key={card.id}
                             card={card}
                             labels={labelsForCard(card.id)}
+                            checklistItems={checklistForCard(card.id)}
                             onQuickEdit={(rect) => onQuickEdit(card.id, rect)}
                             onClick={() => onCardClick(card.id)}
                         />

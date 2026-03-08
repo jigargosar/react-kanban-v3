@@ -16,13 +16,14 @@ import { generateKeyBetween } from 'fractional-indexing'
 import { useState } from 'react'
 import { KanbanColumn } from './Column'
 import { KanbanCard } from './Card'
-import type { Column, Card, Label } from './types'
+import type { Column, Card, Label, ChecklistItem } from './types'
 
 type BoardProps = {
     columns: Column[]
     cards: Card[]
     cardsForColumn: (columnId: string) => Card[]
     labelsForCard: (cardId: string) => Label[]
+    checklistForCard: (cardId: string) => ChecklistItem[]
     onAddColumn: () => void
     onAddCard: (columnId: string, title: string) => void
     onArchiveColumn: (columnId: string) => void
@@ -40,6 +41,7 @@ export function Board({
     cards,
     cardsForColumn,
     labelsForCard,
+    checklistForCard,
     onAddColumn,
     onAddCard,
     onArchiveColumn,
@@ -165,6 +167,7 @@ export function Board({
                             column={column}
                             cards={cardsForColumn(column.id)}
                             labelsForCard={labelsForCard}
+                            checklistForCard={checklistForCard}
                             onAddCard={(title) => onAddCard(column.id, title)}
                             onArchiveColumn={() => onArchiveColumn(column.id)}
                             onUpdateColumnTitle={(title) => onUpdateColumnTitle(column.id, title)}
@@ -182,7 +185,7 @@ export function Board({
             </div>
             <DragOverlay>
                 {activeCard ? (
-                    <KanbanCard card={activeCard} labels={labelsForCard(activeCard.id)} isOverlay />
+                    <KanbanCard card={activeCard} labels={labelsForCard(activeCard.id)} checklistItems={checklistForCard(activeCard.id)} isOverlay />
                 ) : null}
                 {activeColumn ? (() => {
                     const columnCards = cardsForColumn(activeColumn.id)
@@ -198,7 +201,7 @@ export function Board({
                             </div>
                             <div className="px-2 pb-1 space-y-1.5 overflow-hidden">
                                 {columnCards.map((card) => (
-                                    <KanbanCard key={card.id} card={card} labels={labelsForCard(card.id)} />
+                                    <KanbanCard key={card.id} card={card} labels={labelsForCard(card.id)} checklistItems={checklistForCard(card.id)} />
                                 ))}
                             </div>
                             <div className="px-3 py-2.5 text-[13px] text-white/15">

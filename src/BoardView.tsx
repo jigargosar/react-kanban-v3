@@ -6,7 +6,7 @@ import { Board } from './Board'
 import { Presence } from './Presence'
 import { CardDetailModal } from './CardDetailModal'
 import { QuickEditPopup } from './QuickEditPopup'
-import type { Column, Card, Label, CardLabel, Comment } from './types'
+import type { Column, Card, Label, CardLabel, Comment, ChecklistItem } from './types'
 
 type BoardViewProps = {
     boardId: string
@@ -18,6 +18,7 @@ export function BoardView({ boardId }: BoardViewProps) {
     const [labels, setLabels] = useState<Label[]>([])
     const [cardLabels, setCardLabels] = useState<CardLabel[]>([])
     const [comments, setComments] = useState<Comment[]>([])
+    const [checklistItems, setChecklistItems] = useState<ChecklistItem[]>([])
     const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading')
     const [selectedCardId, setSelectedCardId] = useState<string | null>(null)
     const [quickEditState, setQuickEditState] = useState<{ cardId: string; rect: DOMRect } | null>(null)
@@ -69,9 +70,12 @@ export function BoardView({ boardId }: BoardViewProps) {
 
             if (cardData.length > 0) {
                 const cardIds = cardData.map((c) => c.id)
-                const { data: clData } = await supabase
-                    .from('card_labels').select('*').in('card_id', cardIds)
-                setCardLabels(clData ?? [])
+                const [clRes, ciRes] = await Promise.all([
+                    supabase.from('card_labels').select('*').in('card_id', cardIds),
+                    supabase.from('checklist_items').select('*').in('card_id', cardIds).order('position'),
+                ])
+                setCardLabels(clRes.data ?? [])
+                setChecklistItems(ciRes.data ?? [])
             }
 
             setStatus('ready')
@@ -153,6 +157,24 @@ export function BoardView({ boardId }: BoardViewProps) {
                     setCardLabels((prev) => {
                         const exists = prev.some((x) => x.card_id === cl.card_id && x.label_id === cl.label_id)
                         return exists ? prev : [...prev, cl]
+                    })
+                },
+            )
+            .on(
+                'postgres_changes',
+                { event: '*', schema: 'public', table: 'checklist_items' },
+                (payload) => {
+                    if (payload.eventType === 'DELETE') {
+                        setChecklistItems((prev) => prev.filter((ci) => ci.id !== payload.old.id))
+                        return
+                    }
+                    const item = payload.new as ChecklistItem
+                    setChecklistItems((prev) => {
+                        const exists = prev.some((ci) => ci.id === item.id)
+                        const next = exists
+                            ? prev.map((ci) => ci.id === item.id ? item : ci)
+                            : [...prev, item]
+                        return next.sort((a, b) => a.position < b.position ? -1 : 1)
                     })
                 },
             )
@@ -401,6 +423,50 @@ export function BoardView({ boardId }: BoardViewProps) {
         })
     }
 
+    const checklistForCard = (cardId: string) =>
+        checklistItems
+            .filter((ci) => ci.card_id === cardId)
+            .sort((a, b) => a.position < b.position ? -1 : 1)
+
+    const addChecklistItem = (cardId: string, title: string) => {
+        const cardItems = checklistForCard(cardId)
+        const lastPosition = cardItems[cardItems.length - 1]?.position ?? null
+        const position = generateKeyBetween(lastPosition, null)
+        const id = crypto.randomUUID()
+        setChecklistItems((prev) => [...prev, { id, card_id: cardId, title, checked: false, position }])
+        enqueue(async () => {
+            const { error } = await supabase.from('checklist_items').insert({ id, card_id: cardId, title, position })
+            if (error) console.error(error)
+        })
+    }
+
+    const toggleChecklistItem = (itemId: string) => {
+        const item = checklistItems.find((ci) => ci.id === itemId)
+        if (!item) return
+        const checked = !item.checked
+        setChecklistItems((prev) => prev.map((ci) => ci.id === itemId ? { ...ci, checked } : ci))
+        enqueue(async () => {
+            const { error } = await supabase.from('checklist_items').update({ checked }).eq('id', itemId)
+            if (error) console.error(error)
+        })
+    }
+
+    const updateChecklistItemTitle = (itemId: string, title: string) => {
+        setChecklistItems((prev) => prev.map((ci) => ci.id === itemId ? { ...ci, title } : ci))
+        enqueue(async () => {
+            const { error } = await supabase.from('checklist_items').update({ title }).eq('id', itemId)
+            if (error) console.error(error)
+        })
+    }
+
+    const deleteChecklistItem = (itemId: string) => {
+        setChecklistItems((prev) => prev.filter((ci) => ci.id !== itemId))
+        enqueue(async () => {
+            const { error } = await supabase.from('checklist_items').delete().eq('id', itemId)
+            if (error) console.error(error)
+        })
+    }
+
     // Load comments when a card is selected
     useEffect(() => {
         if (!selectedCardId) return
@@ -478,6 +544,7 @@ export function BoardView({ boardId }: BoardViewProps) {
                     cards={cards}
                     cardsForColumn={cardsForColumn}
                     labelsForCard={labelsForCard}
+                    checklistForCard={checklistForCard}
                     onAddColumn={addColumn}
                     onAddCard={addCard}
                     onArchiveColumn={archiveColumn}
@@ -546,6 +613,11 @@ export function BoardView({ boardId }: BoardViewProps) {
                     labels={labels}
                     cardLabelIds={selectedCardLabelIds}
                     comments={commentsForCard(selectedCard.id)}
+                    checklistItems={checklistForCard(selectedCard.id)}
+                    onAddChecklistItem={(title) => addChecklistItem(selectedCard.id, title)}
+                    onToggleChecklistItem={toggleChecklistItem}
+                    onUpdateChecklistItemTitle={updateChecklistItemTitle}
+                    onDeleteChecklistItem={deleteChecklistItem}
                     onUpdateTitle={(title) => updateCardTitle(selectedCard.id, title)}
                     onUpdateDescription={(desc) => updateCardDescription(selectedCard.id, desc)}
                     onUpdateDueDate={(date) => updateCardDueDate(selectedCard.id, date)}

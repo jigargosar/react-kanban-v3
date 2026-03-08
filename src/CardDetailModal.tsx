@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import type { Card, Column, Comment, Label } from './types'
+import type { Card, ChecklistItem, Column, Comment, Label } from './types'
 import { labelDotClass } from './types'
 
 type CardDetailModalProps = {
@@ -8,6 +8,11 @@ type CardDetailModalProps = {
     labels: Label[]
     cardLabelIds: Set<string>
     comments: Comment[]
+    checklistItems: ChecklistItem[]
+    onAddChecklistItem: (title: string) => void
+    onToggleChecklistItem: (itemId: string) => void
+    onUpdateChecklistItemTitle: (itemId: string, title: string) => void
+    onDeleteChecklistItem: (itemId: string) => void
     onUpdateTitle: (title: string) => void
     onUpdateDescription: (description: string) => void
     onUpdateDueDate: (date: string | null) => void
@@ -26,6 +31,11 @@ export function CardDetailModal({
     labels,
     cardLabelIds,
     comments,
+    checklistItems,
+    onAddChecklistItem,
+    onToggleChecklistItem,
+    onUpdateChecklistItemTitle,
+    onDeleteChecklistItem,
     onUpdateTitle,
     onUpdateDescription,
     onUpdateDueDate,
@@ -46,6 +56,10 @@ export function CardDetailModal({
     const [editingLabelTitle, setEditingLabelTitle] = useState('')
     const [showCoverPicker, setShowCoverPicker] = useState(false)
     const [commentText, setCommentText] = useState('')
+    const [newChecklistTitle, setNewChecklistTitle] = useState('')
+    const [addingChecklist, setAddingChecklist] = useState(false)
+    const [editingChecklistId, setEditingChecklistId] = useState<string | null>(null)
+    const [editingChecklistTitle, setEditingChecklistTitle] = useState('')
     const overlayRef = useRef<HTMLDivElement>(null)
 
     useEffect(() => {
@@ -190,6 +204,100 @@ export function CardDetailModal({
                                         {card.description || 'Add a description...'}
                                     </span>
                                 </div>
+                            )}
+                        </div>
+
+                        {/* Checklist */}
+                        <div>
+                            <div className="flex items-center justify-between">
+                                <label className="text-[11px] font-medium text-white/25 uppercase tracking-wider">Checklist</label>
+                                {checklistItems.length > 0 && (() => {
+                                    const checked = checklistItems.filter((ci) => ci.checked).length
+                                    return (
+                                        <span className={`text-[10px] ${checked === checklistItems.length ? 'text-emerald-400' : 'text-white/25'}`}>
+                                            {checked}/{checklistItems.length}
+                                        </span>
+                                    )
+                                })()}
+                            </div>
+                            {checklistItems.length > 0 && (
+                                <div className="mt-2 space-y-0.5">
+                                    {checklistItems.map((item) => (
+                                        <div key={item.id} className="group/ci flex items-center gap-2 py-1 px-1 rounded hover:bg-white/[0.03] transition-colors">
+                                            <button
+                                                onClick={() => onToggleChecklistItem(item.id)}
+                                                className={`shrink-0 h-4 w-4 rounded border transition-all cursor-pointer ${
+                                                    item.checked
+                                                        ? 'bg-accent border-accent'
+                                                        : 'border-white/20 hover:border-white/40'
+                                                }`}
+                                            >
+                                                {item.checked && (
+                                                    <svg className="h-4 w-4 text-surface" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                                                    </svg>
+                                                )}
+                                            </button>
+                                            {editingChecklistId === item.id ? (
+                                                <input
+                                                    value={editingChecklistTitle}
+                                                    onChange={(e) => setEditingChecklistTitle(e.target.value)}
+                                                    onBlur={() => { onUpdateChecklistItemTitle(item.id, editingChecklistTitle); setEditingChecklistId(null) }}
+                                                    onKeyDown={(e) => {
+                                                        if (e.key === 'Enter') { onUpdateChecklistItemTitle(item.id, editingChecklistTitle); setEditingChecklistId(null) }
+                                                        if (e.key === 'Escape') setEditingChecklistId(null)
+                                                    }}
+                                                    className="flex-1 bg-transparent text-[13px] text-white/80 outline-none border-b border-accent/50"
+                                                    autoFocus
+                                                />
+                                            ) : (
+                                                <span
+                                                    onClick={() => { setEditingChecklistId(item.id); setEditingChecklistTitle(item.title) }}
+                                                    className={`flex-1 text-[13px] cursor-pointer ${
+                                                        item.checked ? 'text-white/30 line-through' : 'text-white/70'
+                                                    }`}
+                                                >
+                                                    {item.title}
+                                                </span>
+                                            )}
+                                            <button
+                                                onClick={() => onDeleteChecklistItem(item.id)}
+                                                className="shrink-0 p-0.5 text-white/0 group-hover/ci:text-white/15 hover:!text-red-400 transition-all cursor-pointer"
+                                            >
+                                                <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                                </svg>
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                            {addingChecklist ? (
+                                <div className="mt-2">
+                                    <input
+                                        value={newChecklistTitle}
+                                        onChange={(e) => setNewChecklistTitle(e.target.value)}
+                                        onBlur={() => { if (!newChecklistTitle.trim()) setAddingChecklist(false) }}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter') {
+                                                const trimmed = newChecklistTitle.trim()
+                                                if (trimmed) { onAddChecklistItem(trimmed); setNewChecklistTitle('') }
+                                                else setAddingChecklist(false)
+                                            }
+                                            if (e.key === 'Escape') { setAddingChecklist(false); setNewChecklistTitle('') }
+                                        }}
+                                        placeholder="Add an item..."
+                                        className="w-full bg-white/[0.03] border border-white/[0.08] rounded-lg p-2.5 text-[13px] text-white/70 outline-none focus:border-accent/30 transition-colors placeholder:text-white/15"
+                                        autoFocus
+                                    />
+                                </div>
+                            ) : (
+                                <button
+                                    onClick={() => { setAddingChecklist(true); setNewChecklistTitle('') }}
+                                    className="mt-2 text-[12px] text-white/25 hover:text-white/50 transition-colors cursor-pointer"
+                                >
+                                    + Add item
+                                </button>
                             )}
                         </div>
 

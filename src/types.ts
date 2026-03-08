@@ -51,6 +51,14 @@ export type Comment = {
     created_at: string
 }
 
+export type ChecklistItem = {
+    id: string
+    card_id: CardId
+    title: string
+    checked: boolean
+    position: Position
+}
+
 export const LABEL_COLORS: { key: string; bg: string; dot: string; name: string }[] = [
     { key: 'green',  bg: 'bg-emerald-400/15', dot: 'bg-emerald-400', name: 'Green' },
     { key: 'yellow', bg: 'bg-yellow-400/15',  dot: 'bg-yellow-400',  name: 'Yellow' },

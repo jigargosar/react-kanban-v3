@@ -1,6 +1,6 @@
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import type { Card, Label } from './types'
+import type { Card, ChecklistItem, Label } from './types'
 import { LABEL_COLORS, labelDotClass } from './types'
 
 const COVER_COLORS: Record<string, string> = Object.fromEntries(
@@ -10,6 +10,7 @@ const COVER_COLORS: Record<string, string> = Object.fromEntries(
 type KanbanCardProps = {
     card: Card
     labels?: Label[]
+    checklistItems?: ChecklistItem[]
     isOverlay?: boolean
     onQuickEdit?: (rect: DOMRect) => void
     onClick?: () => void
@@ -30,7 +31,7 @@ function isOverdue(dateStr: string): boolean {
     return new Date(dateStr) < new Date()
 }
 
-export function KanbanCard({ card, labels = [], isOverlay, onQuickEdit, onClick }: KanbanCardProps) {
+export function KanbanCard({ card, labels = [], checklistItems = [], isOverlay, onQuickEdit, onClick }: KanbanCardProps) {
     const handleQuickEdit = (e: React.MouseEvent) => {
         e.stopPropagation()
         if (!onQuickEdit) return
@@ -74,12 +75,29 @@ export function KanbanCard({ card, labels = [], isOverlay, onQuickEdit, onClick 
                     </div>
                 )}
                 <span className="leading-relaxed">{card.title}</span>
-                {card.due_date && (
-                    <div className={`flex items-center gap-1 mt-2 text-[10px] ${isOverdue(card.due_date) ? 'text-red-400' : 'text-white/35'}`}>
-                        <svg className="h-2.5 w-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        {formatDueDate(card.due_date)}
+                {(card.due_date || checklistItems.length > 0) && (
+                    <div className="flex items-center gap-3 mt-2">
+                        {card.due_date && (
+                            <div className={`flex items-center gap-1 text-[10px] ${isOverdue(card.due_date) ? 'text-red-400' : 'text-white/35'}`}>
+                                <svg className="h-2.5 w-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                {formatDueDate(card.due_date)}
+                            </div>
+                        )}
+                        {checklistItems.length > 0 && (() => {
+                            const checked = checklistItems.filter((ci) => ci.checked).length
+                            const total = checklistItems.length
+                            const allDone = checked === total
+                            return (
+                                <div className={`flex items-center gap-1 text-[10px] ${allDone ? 'text-emerald-400' : 'text-white/35'}`}>
+                                    <svg className="h-2.5 w-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                                    </svg>
+                                    {checked}/{total}
+                                </div>
+                            )
+                        })()}
                     </div>
                 )}
             </div>
@@ -90,11 +108,12 @@ export function KanbanCard({ card, labels = [], isOverlay, onQuickEdit, onClick 
 type SortableCardProps = {
     card: Card
     labels: Label[]
+    checklistItems: ChecklistItem[]
     onQuickEdit: (rect: DOMRect) => void
     onClick: () => void
 }
 
-export function SortableCard({ card, labels, onQuickEdit, onClick }: SortableCardProps) {
+export function SortableCard({ card, labels, checklistItems, onQuickEdit, onClick }: SortableCardProps) {
     const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
         id: card.id,
     })
@@ -107,7 +126,7 @@ export function SortableCard({ card, labels, onQuickEdit, onClick }: SortableCar
 
     return (
         <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
-            <KanbanCard card={card} labels={labels} onQuickEdit={onQuickEdit} onClick={onClick} />
+            <KanbanCard card={card} labels={labels} checklistItems={checklistItems} onQuickEdit={onQuickEdit} onClick={onClick} />
         </div>
     )
 }
