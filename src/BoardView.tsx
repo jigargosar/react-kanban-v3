@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { supabase } from './supabase'
 import { enqueue } from './mutationQueue'
 import { generateKeyBetween } from 'fractional-indexing'
@@ -25,6 +25,12 @@ export function BoardView({ boardId }: BoardViewProps) {
     const [searchQuery, setSearchQuery] = useState('')
     const [showHelp, setShowHelp] = useState(false)
     const [quickEditShowLabels, setQuickEditShowLabels] = useState(false)
+
+    const columnIdsRef = useRef<Set<string>>(new Set())
+    useEffect(() => { columnIdsRef.current = new Set(columns.map((c) => c.id)) }, [columns])
+
+    const cardIdsRef = useRef<Set<string>>(new Set())
+    useEffect(() => { cardIdsRef.current = new Set(cards.map((c) => c.id)) }, [cards])
 
     const selectedCard = selectedCardId ? cards.find((c) => c.id === selectedCardId) ?? null : null
 
@@ -113,6 +119,7 @@ export function BoardView({ boardId }: BoardViewProps) {
                         return
                     }
                     const card = payload.new as Card
+                    if (!columnIdsRef.current.has(card.column_id)) return
                     setCards((prev) => {
                         if (card.archived) return prev.filter((c) => c.id !== card.id)
                         const exists = prev.some((c) => c.id === card.id)
@@ -154,6 +161,7 @@ export function BoardView({ boardId }: BoardViewProps) {
                         return
                     }
                     const cl = payload.new as CardLabel
+                    if (!cardIdsRef.current.has(cl.card_id)) return
                     setCardLabels((prev) => {
                         const exists = prev.some((x) => x.card_id === cl.card_id && x.label_id === cl.label_id)
                         return exists ? prev : [...prev, cl]
@@ -169,6 +177,7 @@ export function BoardView({ boardId }: BoardViewProps) {
                         return
                     }
                     const item = payload.new as ChecklistItem
+                    if (!cardIdsRef.current.has(item.card_id)) return
                     setChecklistItems((prev) => {
                         const exists = prev.some((ci) => ci.id === item.id)
                         const next = exists
@@ -187,6 +196,7 @@ export function BoardView({ boardId }: BoardViewProps) {
                         return
                     }
                     const comment = payload.new as Comment
+                    if (!cardIdsRef.current.has(comment.card_id)) return
                     setComments((prev) => {
                         const exists = prev.some((c) => c.id === comment.id)
                         return exists

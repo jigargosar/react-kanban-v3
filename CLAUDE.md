@@ -45,6 +45,10 @@ Global shortcuts in BoardView (skipped when typing in inputs or when modal/popup
 - `Esc` — close modal/popup
 - `?` — toggle help overlay
 
+## Principles
+
+- Do not base decisions on assumptions about app scope (e.g., "single-user" or "portfolio project"). Treat all code as production-grade.
+
 ## Patterns
 
 - Client-generated UUIDs for optimistic inserts (`crypto.randomUUID()`)

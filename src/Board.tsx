@@ -140,12 +140,12 @@ export function Board({
             onMoveCard(activeCardId, targetColumnId, newPosition)
         } else if (wasColumn) {
             const activeColumnId = active.id as string
-            const overColumnId = over.id as string
-            if (activeColumnId === overColumnId) return
+            if (activeColumnId === (over.id as string)) return
 
-            const overIndex = columns.findIndex((c) => c.id === overColumnId)
-            const before = columns[overIndex - 1]?.position ?? null
-            const after = columns[overIndex]?.position ?? null
+            const activeIndex = columns.findIndex((c) => c.id === activeColumnId)
+            if (activeIndex === -1) return
+            const before = columns[activeIndex - 1]?.position ?? null
+            const after = columns[activeIndex + 1]?.position ?? null
             const newPosition = generateKeyBetween(before, after)
             onMoveColumn(activeColumnId, newPosition)
         }

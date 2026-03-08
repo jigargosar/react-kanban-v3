@@ -8,7 +8,11 @@ async function flush() {
     running = true
     while (queue.length > 0) {
         const next = queue.shift()!
-        await next()
+        try {
+            await next()
+        } catch (err) {
+            console.error('Mutation failed:', err)
+        }
     }
     running = false
 }

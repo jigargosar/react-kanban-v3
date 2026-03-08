@@ -17,12 +17,6 @@ importers:
       '@dnd-kit/utilities':
         specifier: ^3.2.2
         version: 3.2.2(react@19.2.4)
-      '@liveblocks/client':
-        specifier: ^3.15.0
-        version: 3.15.0(@types/json-schema@7.0.15)
-      '@liveblocks/react':
-        specifier: ^3.15.0
-        version: 3.15.0(@types/json-schema@7.0.15)(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react@19.2.4)
       '@supabase/supabase-js':
         specifier: ^2.98.0
         version: 2.98.0
@@ -350,26 +344,6 @@ packages:
   '@jridgewell/trace-mapping@0.3.31':
     resolution: {integrity: sha512-zzNR+SdQSDJzc8joaeP8QQoCQr8NuYx2dIIytl1QeBEZHJ9uW6hebsrYgbz8hJwUQao3TWCMtmfV8Nu1twOLAw==}
 
-  '@liveblocks/client@3.15.0':
-    resolution: {integrity: sha512-Nz4PRtc8mlTzlTudm/XvuO2148qOesslJnRQXvPcO7RKvkNdu4KVsyAfcEBHMYu/0iOIulKX61TV5kzVO0vTYA==}
-
-  '@liveblocks/core@3.15.0':
-    resolution: {integrity: sha512-nc8/NsDsIkFUE4EcFf2/gCZNAbRTmX8Aks0o3AAM0oDx4hW9EgkQo8m4d+ReQNQ5W6fdep+GV6emwc2/l8jMLQ==}
-    peerDependencies:
-      '@types/json-schema': ^7
-
-  '@liveblocks/react@3.15.0':
-    resolution: {integrity: sha512-RTdEon5HMVS3SRV3KpwtHIbnWWJL2VQ1ljAyScueXc91mH0oKHXoGxTmheNELP9AnwSONPMcNYsF2MFJuf/1pw==}
-    peerDependencies:
-      '@types/react': '*'
-      '@types/react-dom': '*'
-      react: ^18 || ^19 || ^19.0.0-rc
-    peerDependenciesMeta:
-      '@types/react':
-        optional: true
-      '@types/react-dom':
-        optional: true
-
   '@rolldown/pluginutils@1.0.0-rc.3':
     resolution: {integrity: sha512-eybk3TjzzzV97Dlj5c+XrBFW57eTNhzod66y9HrBlzJ6NsCrWCp/2kaPS3K9wJmurBC0Tdw4yPjXKZqlznim3Q==}
 
@@ -626,9 +600,6 @@ packages:
 
   '@types/estree@1.0.8':
     resolution: {integrity: sha512-dWHzHa2WqEXI/O1E9OjrocMTKJl2mSrEolh1Iomrv6U+JuNwaHXsXx9bLu5gG7BUWFIN0skIQJQ/L1rIex4X6w==}
-
-  '@types/json-schema@7.0.15':
-    resolution: {integrity: sha512-5+fP8P8MFNC+AyZCDxrB2pkZFPGzqQWUzpSeuuVLvm8VMcorNYavBqoFcxK8bQz4Qsbn4oUEEem4wDLfcysGHA==}
 
   '@types/node@25.3.5':
     resolution: {integrity: sha512-oX8xrhvpiyRCQkG1MFchB09f+cXftgIXb3a7UUa4Y3wpmZPw5tyZGTLWhlESOLq1Rq6oDlc8npVU2/9xiCuXMA==}
@@ -1294,27 +1265,6 @@ snapshots:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.5.5
 
-  '@liveblocks/client@3.15.0(@types/json-schema@7.0.15)':
-    dependencies:
-      '@liveblocks/core': 3.15.0(@types/json-schema@7.0.15)
-    transitivePeerDependencies:
-      - '@types/json-schema'
-
-  '@liveblocks/core@3.15.0(@types/json-schema@7.0.15)':
-    dependencies:
-      '@types/json-schema': 7.0.15
-
-  '@liveblocks/react@3.15.0(@types/json-schema@7.0.15)(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react@19.2.4)':
-    dependencies:
-      '@liveblocks/client': 3.15.0(@types/json-schema@7.0.15)
-      '@liveblocks/core': 3.15.0(@types/json-schema@7.0.15)
-      react: 19.2.4
-    optionalDependencies:
-      '@types/react': 19.2.14
-      '@types/react-dom': 19.2.3(@types/react@19.2.14)
-    transitivePeerDependencies:
-      - '@types/json-schema'
-
   '@rolldown/pluginutils@1.0.0-rc.3': {}
 
   '@rollup/rollup-android-arm-eabi@4.59.0':
@@ -1520,8 +1470,6 @@ snapshots:
       '@babel/types': 7.29.0
 
   '@types/estree@1.0.8': {}
-
-  '@types/json-schema@7.0.15': {}
 
   '@types/node@25.3.5':
     dependencies:
