@@ -1,11 +1,7 @@
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import type { Card, ChecklistItem, Label } from './types'
-import { LABEL_COLORS, labelDotClass } from './types'
-
-const COVER_COLORS: Record<string, string> = Object.fromEntries(
-    LABEL_COLORS.map((c) => [c.key, c.dot])
-)
+import { labelDotClass } from './types'
 
 type KanbanCardProps = {
     card: Card
@@ -60,7 +56,7 @@ export function KanbanCard({ card, labels = [], checklistItems = [], isOverlay, 
                 </button>
             )}
             {card.cover_color && (
-                <div className={`h-8 rounded-t-lg ${COVER_COLORS[card.cover_color] ?? 'bg-gray-400'}`} />
+                <div className={`h-8 rounded-t-lg ${labelDotClass(card.cover_color)}`} />
             )}
             <div className="p-3">
                 {labels.length > 0 && (

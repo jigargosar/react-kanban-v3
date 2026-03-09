@@ -1,8 +1,8 @@
-type BoardId = string
-type ColumnId = string
-type CardId = string
-type LabelId = string
-type Position = string
+export type BoardId = string
+export type ColumnId = string
+export type CardId = string
+export type LabelId = string
+export type Position = string
 
 export type Board = {
     id: BoardId
