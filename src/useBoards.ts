@@ -13,29 +13,37 @@ export function useBoards() {
     const [status, setStatus] = useState<ConnectionStatus>('connecting')
 
     useEffect(() => {
-        supabase.from('boards').select('*').eq('archived', false).order('position')
-            .then(({ data, error }) => {
-                if (error) { setStatus('error'); return }
-                if (!data || data.length === 0) {
-                    const id = crypto.randomUUID()
-                    const position = generateKeyBetween(null, null)
-                    setBoards([{ id, title: 'My Board', position, archived: false }])
-                    setSelectedBoardId(id)
-                    setStatus('connected')
-                    enqueue(async () => {
-                        const { error } = await supabase.from('boards').insert({ id, title: 'My Board', position })
-                        if (error) console.error(error)
-                    })
-                    enqueue(async () => {
-                        const { error } = await supabase.from('columns').update({ board_id: id }).is('board_id', null)
-                        if (error) console.error(error)
-                    })
-                } else {
-                    setBoards(data)
-                    setSelectedBoardId(data[0].id)
-                    setStatus('connected')
-                }
+        const createInitialBoard = () => {
+            const id = crypto.randomUUID()
+            const position = generateKeyBetween(null, null)
+            setBoards([{ id, title: 'My Board', position, archived: false }])
+            setSelectedBoardId(id)
+            setStatus('connected')
+            enqueue(async () => {
+                const { error } = await supabase.from('boards').insert({ id, title: 'My Board', position })
+                if (error) console.error(error)
             })
+            enqueue(async () => {
+                const { error } = await supabase.from('columns').update({ board_id: id }).is('board_id', null)
+                if (error) console.error(error)
+            })
+        }
+
+        const loadBoards = () => {
+            supabase.from('boards').select('*').eq('archived', false).order('position')
+                .then(({ data, error }) => {
+                    if (error) { setStatus('error'); return }
+                    if (!data || data.length === 0) {
+                        createInitialBoard()
+                    } else {
+                        setBoards(data)
+                        setSelectedBoardId(data[0].id)
+                        setStatus('connected')
+                    }
+                })
+        }
+
+        loadBoards()
 
         const channel = supabase
             .channel('boards-sync')
