@@ -186,9 +186,13 @@ export function useBoardData(boardId: string) {
             .sort(byPosition),
     [checklistItems])
 
+    const activeCommentLoadRef = useRef<string | null>(null)
+
     const loadCommentsForCard = useCallback((cardId: string) => {
+        activeCommentLoadRef.current = cardId
         supabase.from('comments').select('*').eq('card_id', cardId).order('created_at')
             .then(({ data }) => {
+                if (activeCommentLoadRef.current !== cardId) return
                 if (data) setComments((prev) => {
                     const otherComments = prev.filter((c) => c.card_id !== cardId)
                     return [...otherComments, ...data]
@@ -224,6 +228,8 @@ export function useBoardData(boardId: string) {
     const archiveCard = (cardId: string) => {
         setCards((prev) => prev.filter((c) => c.id !== cardId))
         setCardLabels((prev) => prev.filter((cl) => cl.card_id !== cardId))
+        setComments((prev) => prev.filter((c) => c.card_id !== cardId))
+        setChecklistItems((prev) => prev.filter((ci) => ci.card_id !== cardId))
         enqueue(async () => {
             const { error } = await supabase.from('cards').update({ archived: true }).eq('id', cardId)
             if (error) console.error(error)
@@ -231,8 +237,12 @@ export function useBoardData(boardId: string) {
     }
 
     const archiveColumn = (columnId: string) => {
+        const removedCardIds = new Set(cards.filter((c) => c.column_id === columnId).map((c) => c.id))
         setColumns((prev) => prev.filter((c) => c.id !== columnId))
         setCards((prev) => prev.filter((c) => c.column_id !== columnId))
+        setCardLabels((prev) => prev.filter((cl) => !removedCardIds.has(cl.card_id)))
+        setComments((prev) => prev.filter((c) => !removedCardIds.has(c.card_id)))
+        setChecklistItems((prev) => prev.filter((ci) => !removedCardIds.has(ci.card_id)))
         enqueue(async () => {
             const { error } = await supabase.from('columns').update({ archived: true }).eq('id', columnId)
             if (error) console.error(error)

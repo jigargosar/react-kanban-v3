@@ -24,7 +24,9 @@ function formatDueDate(dateStr: string): string {
 }
 
 function isOverdue(dateStr: string): boolean {
-    return new Date(dateStr) < new Date()
+    const dueLocal = dateStr.split('T')[0]
+    const todayLocal = new Date().toISOString().split('T')[0]
+    return dueLocal < todayLocal
 }
 
 export function KanbanCard({ card, labels = [], checklistItems = [], isOverlay, onQuickEdit, onClick }: KanbanCardProps) {

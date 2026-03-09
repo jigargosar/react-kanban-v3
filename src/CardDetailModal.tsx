@@ -68,7 +68,13 @@ export function CardDetailModal({
 
     useEffect(() => {
         const handleEscape = (e: KeyboardEvent) => {
-            if (e.key === 'Escape') onClose()
+            if (e.key !== 'Escape') return
+            const tag = (document.activeElement as HTMLElement)?.tagName
+            if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') {
+                (document.activeElement as HTMLElement).blur()
+                return
+            }
+            onClose()
         }
         document.addEventListener('keydown', handleEscape)
         return () => document.removeEventListener('keydown', handleEscape)
@@ -101,7 +107,8 @@ export function CardDetailModal({
     const activeLabels = labels.filter((l) => cardLabelIds.has(l.id))
 
     const dueDate = card.due_date ? card.due_date.split('T')[0] : ''
-    const isOverdue = card.due_date ? new Date(card.due_date) < new Date() : false
+    const todayLocal = new Date().toISOString().split('T')[0]
+    const isOverdue = card.due_date ? card.due_date.split('T')[0] < todayLocal : false
 
     return (
         <div

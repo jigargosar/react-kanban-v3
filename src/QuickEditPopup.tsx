@@ -40,7 +40,14 @@ export function QuickEditPopup({
 
     useEffect(() => {
         const handleEscape = (e: KeyboardEvent) => {
-            if (e.key === 'Escape') onClose()
+            if (e.key !== 'Escape') return
+            const tag = (document.activeElement as HTMLElement)?.tagName
+            if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') {
+                (document.activeElement as HTMLElement).blur()
+                return
+            }
+            commitTitle()
+            onClose()
         }
         document.addEventListener('keydown', handleEscape)
         return () => document.removeEventListener('keydown', handleEscape)
