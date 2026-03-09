@@ -14,10 +14,10 @@ Task Board
 1. Fix due date timezone bug (UTC midnight shows wrong day in negative UTC offsets, false overdue)
 2. Fix Escape key propagation in CardDetailModal/QuickEditPopup (closes modal when editing sub-inputs)
 3. Fix comments loading race condition (switching cards rapidly shows wrong/no comments)
-4. Seed default labels for initial auto-created board (first-time users get empty label picker)
-5. Clean up checklist_items/comments state on card archive
+4. Clean up checklist_items/comments state on card archive
 6. Clean up card_labels/comments/checklist_items state on column archive
 7. Add missing DB indexes (cards.column_id, card_labels.label_id, checklist_items.card_id)
+8. Refactor: extract useBoardData hook from BoardView, shared realtime handler, shared LabelPicker, COVER_COLORS redundancy, export domain types, memoization consistency
 
 # Review
 
@@ -35,6 +35,9 @@ Task Board
 3. Scope realtime subscriptions (guard cards/card_labels/comments/checklist_items against other boards)
 4. Remove unused @liveblocks dependencies
 5. Labels: Trello-style colored bars, default labels seeded per board
+6. Refactor App.tsx: extract useBoards hook, separate data fetch from auto-creation, extract seedDefaultLabels
+7. Fix seed default labels for initial auto-created board (first-time users get empty label picker)
+8. Remove dead orphan column adoption code
 
 # Backlog
 
