@@ -17,7 +17,6 @@ Task Board
 4. Clean up checklist_items/comments state on card archive
 6. Clean up card_labels/comments/checklist_items state on column archive
 7. Add missing DB indexes (cards.column_id, card_labels.label_id, checklist_items.card_id)
-8. Refactor: extract useBoardData hook from BoardView, shared realtime handler, shared LabelPicker, COVER_COLORS redundancy, export domain types, memoization consistency
 
 # Review
 
@@ -38,6 +37,7 @@ Task Board
 6. Refactor App.tsx: extract useBoards hook, separate data fetch from auto-creation, extract seedDefaultLabels
 7. Fix seed default labels for initial auto-created board (first-time users get empty label picker)
 8. Remove dead orphan column adoption code
+9. Refactor BoardView: extract useBoardData hook, shared realtime handler, shared LabelPicker, HelpOverlay, remove COVER_COLORS redundancy, export domain types, consistent memoization
 
 # Backlog
 
