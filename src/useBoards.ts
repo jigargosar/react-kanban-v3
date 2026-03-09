@@ -9,13 +9,18 @@ type ConnectionStatus = 'connecting' | 'connected' | 'error'
 
 function seedDefaultLabels(boardId: string) {
     enqueue(async () => {
-        const defaultLabels = LABEL_COLORS.map((c, i) => ({
-            id: crypto.randomUUID(),
-            board_id: boardId,
-            title: '',
-            color: c.key,
-            position: `a${i}`,
-        }))
+        let prev: string | null = null
+        const defaultLabels = LABEL_COLORS.map((c) => {
+            const position = generateKeyBetween(prev, null)
+            prev = position
+            return {
+                id: crypto.randomUUID(),
+                board_id: boardId,
+                title: '',
+                color: c.key,
+                position,
+            }
+        })
         const { error } = await supabase.from('labels').insert(defaultLabels)
         if (error) console.error(error)
     })
