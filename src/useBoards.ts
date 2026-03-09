@@ -43,10 +43,6 @@ export function useBoards() {
                 if (error) console.error(error)
             })
             seedDefaultLabels(id)
-            enqueue(async () => {
-                const { error } = await supabase.from('columns').update({ board_id: id }).is('board_id', null)
-                if (error) console.error(error)
-            })
         }
 
         const loadBoards = () => {
