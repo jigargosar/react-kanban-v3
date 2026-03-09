@@ -7,6 +7,20 @@ import { LABEL_COLORS } from './types'
 
 type ConnectionStatus = 'connecting' | 'connected' | 'error'
 
+function seedDefaultLabels(boardId: string) {
+    enqueue(async () => {
+        const defaultLabels = LABEL_COLORS.map((c, i) => ({
+            id: crypto.randomUUID(),
+            board_id: boardId,
+            title: '',
+            color: c.key,
+            position: `a${i}`,
+        }))
+        const { error } = await supabase.from('labels').insert(defaultLabels)
+        if (error) console.error(error)
+    })
+}
+
 export function useBoards() {
     const [boards, setBoards] = useState<Board[]>([])
     const [selectedBoardId, setSelectedBoardId] = useState<string | null>(null)
@@ -23,6 +37,7 @@ export function useBoards() {
                 const { error } = await supabase.from('boards').insert({ id, title: 'My Board', position })
                 if (error) console.error(error)
             })
+            seedDefaultLabels(id)
             enqueue(async () => {
                 const { error } = await supabase.from('columns').update({ board_id: id }).is('board_id', null)
                 if (error) console.error(error)
@@ -76,17 +91,9 @@ export function useBoards() {
         setSelectedBoardId(id)
         enqueue(async () => {
             const { error } = await supabase.from('boards').insert({ id, title, position })
-            if (error) { console.error(error); return }
-            const defaultLabels = LABEL_COLORS.map((c, i) => ({
-                id: crypto.randomUUID(),
-                board_id: id,
-                title: '',
-                color: c.key,
-                position: `a${i}`,
-            }))
-            const { error: labelError } = await supabase.from('labels').insert(defaultLabels)
-            if (labelError) console.error(labelError)
+            if (error) console.error(error)
         })
+        seedDefaultLabels(id)
     }
 
     const archiveBoard = (boardId: string) => {
