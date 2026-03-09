@@ -60,23 +60,31 @@ export function useBoards() {
 
         loadBoards()
 
+        const handleBoardChange = (payload: { eventType: string; old: Record<string, unknown>; new: Record<string, unknown> }) => {
+            if (payload.eventType === 'DELETE') {
+                setBoards((prev) => prev.filter((b) => b.id !== payload.old.id))
+                return
+            }
+
+            const board = payload.new as Board
+
+            if (board.archived) {
+                setBoards((prev) => prev.filter((b) => b.id !== board.id))
+                return
+            }
+
+            setBoards((prev) => {
+                const exists = prev.some((b) => b.id === board.id)
+                const next = exists
+                    ? prev.map((b) => b.id === board.id ? board : b)
+                    : [...prev, board]
+                return next.sort((a, b) => a.position < b.position ? -1 : 1)
+            })
+        }
+
         const channel = supabase
             .channel('boards-sync')
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'boards' }, (payload) => {
-                if (payload.eventType === 'DELETE') {
-                    setBoards((prev) => prev.filter((b) => b.id !== payload.old.id))
-                    return
-                }
-                const board = payload.new as Board
-                setBoards((prev) => {
-                    if (board.archived) return prev.filter((b) => b.id !== board.id)
-                    const exists = prev.some((b) => b.id === board.id)
-                    const next = exists
-                        ? prev.map((b) => b.id === board.id ? board : b)
-                        : [...prev, board]
-                    return next.sort((a, b) => a.position < b.position ? -1 : 1)
-                })
-            })
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'boards' }, handleBoardChange)
             .subscribe()
 
         return () => { channel.unsubscribe().catch(console.error) }
